@@ -1,0 +1,76 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add admin authentication and subscription management dashboard",
+  "requirements": [
+    {
+      "id": "REQ-18",
+      "summary": "Create an admin dashboard page accessible only to the owner showing subscription plan management interface",
+      "acceptanceCriteria": [
+        "Admin route added to routing configuration",
+        "Dashboard displays list of all subscription plans with their prices and details",
+        "Interface includes forms to create new subscription plans",
+        "Interface includes forms to edit existing plan prices and features",
+        "Interface includes buttons to delete or deactivate plans",
+        "Page is only accessible when user has owner status",
+        "Non-owner users are redirected or see access denied message"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "create",
+          "description": "Create admin dashboard page that displays all subscription plans in a table or card layout. Include forms to create new plans with name, description, tier (monthly/annual), price in cents, and features list. Provide edit forms for existing plans with inline editing or modal dialogs. Add toggle buttons to activate/deactivate plans and delete buttons with confirmation dialogs. Use the authorization component to verify owner status via useIsUserOwner hook and show access denied message for non-owners. Use useGetAllSubscriptionPlans, useCreateSubscriptionPlan, useUpdateSubscriptionPlan, useDeleteSubscriptionPlan, and useToggleSubscriptionPlanStatus hooks from useQueries.ts. Style with warm earth tone palette consistent with existing pages."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add admin dashboard route at path '/admin' that renders AdminDashboardPage component. Place the route configuration after existing routes but before the catch-all. Ensure the route is protected by authentication and profile setup guards similar to other routes. Import AdminDashboardPage at the top of the file."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Add owner profile display showing special owner badge or indicator",
+      "acceptanceCriteria": [
+        "Profile page or profile section displays owner badge when user has isOwner = true",
+        "Owner indicator is visually distinct using warm earth tone palette",
+        "Non-owner users do not see owner badge",
+        "Owner profile includes access to admin dashboard link"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileCard.tsx",
+          "operation": "create",
+          "description": "Create a ProfileCard component that displays the current user's profile information including name and subscription details. When the user has isOwner = true in their UserProfile, display a distinctive owner badge using warm earth tones (e.g., amber or orange accent with a crown or shield icon). For owner users, include a button or link that navigates to '/admin' for accessing the admin dashboard. Use useGetCallerUserProfile hook to fetch profile data. Hide the owner badge and admin link for non-owner users. Apply consistent styling with the application's OKLCH color palette."
+        },
+        {
+          "path": "frontend/src/pages/SubscriptionManagementPage.tsx",
+          "operation": "modify",
+          "description": "Import and add ProfileCard component above the SubscriptionStatusCard to display user profile with owner badge when applicable. This provides visibility of owner status on the user's subscription management page."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Add admin navigation link in the header that is only visible to the owner",
+      "acceptanceCriteria": [
+        "Layout header includes 'Admin' navigation link when user is owner",
+        "Link navigates to admin dashboard",
+        "Link is hidden for non-owner users",
+        "Link uses consistent styling with existing navigation items"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Add an 'Admin' navigation link in the header navigation section that is conditionally rendered only when the user has owner status. Use useIsUserOwner hook to check owner status. Place the Admin link in the navigation items array after existing links (Twitch Accounts and Subscription). The link should navigate to '/admin' route. Apply the same styling as existing navigation items using Link component with activeProps and consistent className. Ensure the link is hidden (not rendered) for non-owner users."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useIsUserOwner custom hook that calls the backend isUserOwner() function to check if the current authenticated user has owner status. Use useQuery with queryKey ['isUserOwner'] and enable the query only when actor is available. Return a boolean indicating owner status with proper loading and error states. This hook will be used by Layout.tsx and AdminDashboardPage.tsx to conditionally render owner-specific UI elements."
+        }
+      ]
+    }
+  ]
+}

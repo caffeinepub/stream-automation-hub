@@ -1,0 +1,156 @@
+{
+  "kind": "build_request",
+  "title": "Add admin authentication and subscription management dashboard",
+  "projectName": "Stream Automation Hub",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-15",
+      "text": "Add an isOwner boolean field to the UserProfile data model in the backend to identify the app owner",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "it recognizes me as the owner of the app"
+        ]
+      },
+      "acceptanceCriteria": [
+        "UserProfile type includes isOwner: Bool field",
+        "Field defaults to false for new users",
+        "Field can be set to true for the owner's profile"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Create backend functions to check if the authenticated user is the owner and return owner status",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "admin login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Function getIsOwner() returns true if caller's profile has isOwner = true",
+        "Function is callable by any authenticated user",
+        "Returns false for users without owner status"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Create backend CRUD functions for managing subscription plans that are restricted to owner access only",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "when i login i have access to make changes to the subscriptions price or add more as needed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Function to list all available subscription plans",
+        "Function to create new subscription plan with name, price, billing period, and features",
+        "Function to update existing plan pricing and details",
+        "Function to delete or deactivate a subscription plan",
+        "All functions verify caller has isOwner = true before allowing modifications",
+        "Return error if non-owner attempts to call these functions"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Create an admin dashboard page in the frontend accessible only to the owner showing subscription plan management interface",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "admin login",
+          "make changes to the subscriptions price or add more as needed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin route added to routing configuration",
+        "Dashboard displays list of all subscription plans with their prices and details",
+        "Interface includes forms to create new subscription plans",
+        "Interface includes forms to edit existing plan prices and features",
+        "Interface includes buttons to delete or deactivate plans",
+        "Page is only accessible when user has owner status",
+        "Non-owner users are redirected or see access denied message"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Add owner profile display in the frontend showing special owner badge or indicator",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a profile for myself and it recognizes me as the owner of the app"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile page or profile section displays owner badge when user has isOwner = true",
+        "Owner indicator is visually distinct using warm earth tone palette",
+        "Non-owner users do not see owner badge",
+        "Owner profile includes access to admin dashboard link"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Add admin navigation link in the header that is only visible to the owner",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "admin login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Layout header includes 'Admin' navigation link when user is owner",
+        "Link navigates to admin dashboard",
+        "Link is hidden for non-owner users",
+        "Link uses consistent styling with existing navigation items"
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Update migration.mo to handle the new isOwner field when upgrading existing user profiles",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Migration sets isOwner to false for all existing users by default",
+        "Migration preserves all existing profile data during upgrade"
+      ]
+    }
+  ],
+  "constraints": [
+    "Owner authentication uses the existing Internet Identity system",
+    "Owner status must be set manually in the backend or via initialization, not self-assigned through UI",
+    "Subscription plan changes should not affect existing active subscriptions unless explicitly intended",
+    "Maintain single-actor architecture in backend/main.mo"
+  ],
+  "nonGoals": [
+    "Multi-admin support with role-based permissions",
+    "Owner registration flow through UI",
+    "Automatic migration of existing subscription prices",
+    "Custom authentication system separate from Internet Identity"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

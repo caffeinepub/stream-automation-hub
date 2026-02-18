@@ -1,0 +1,71 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-an-admin-dashboard-page-in-the-frontend-accessible-only-to-the-owner-showing-subscription-plan-management-interface",
+      "featureTitle": "Create an admin dashboard page in the frontend accessible only to the owner showing subscription plan management interface",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-owner-profile-display-in-the-frontend-showing-special-owner-badge-or-indicator",
+      "featureTitle": "Add owner profile display in the frontend showing special owner badge or indicator",
+      "files": [
+        "frontend/src/components/ProfileCard.tsx",
+        "frontend/src/pages/SubscriptionManagementPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-admin-navigation-link-in-the-header-that-is-only-visible-to-the-owner",
+      "featureTitle": "Add admin navigation link in the header that is only visible to the owner",
+      "files": [
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

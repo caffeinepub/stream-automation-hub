@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 9,
+  "summary": "Automation app for Discord or Twitch",
+  "architectural_notes": [
+    "Admin system requires role-based access control (RBAC) with owner role",
+    "Subscription management interface should be restricted to admin/owner access only"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-build-a-user-interface-that-allows-users-to-create-view-edit-and-delete-automation-tasks-for-discord-and-twitch",
+      "title": "Build a user interface that allows users to create, view, edit, and delete automation tasks for Discord and Twitch",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-a-modern-clean-visual-theme-with-warm-earth-tones-terracotta-sage-green-cream-and-clear-hierarchy-that-reflects-automation-and-efficiency-using-consistent-spacing-and-typography-throughout-the-interface",
+      "title": "Design a modern, clean visual theme with warm earth tones (terracotta, sage green, cream) and clear hierarchy that reflects automation and efficiency, using consistent spacing and typography throughout the interface",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-real-time-status-and-execution-logs-for-automation-tasks-in-the-user-interface",
+      "title": "Display real-time status and execution logs for automation tasks in the user interface",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-english-language-support-to-all-user-facing-text-in-the-interface-ensuring-consistent-terminology-and-clear-communication-throughout-the-application",
+      "title": "Add English language support to all user-facing text in the interface, ensuring consistent terminology and clear communication throughout the application",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-user-interface-for-adding-and-managing-twitch-affiliate-and-partner-accounts-including-forms-for-account-credentials-and-display-of-account-status",
+      "title": "Create a user interface for adding and managing Twitch affiliate and partner accounts, including forms for account credentials and display of account status",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-passive-income-tracking-for-twitch-affiliate-and-partner-accounts-storing-revenue-data-and-displaying-earnings-summaries-in-the-backend-and-frontend",
+      "title": "Implement passive income tracking for Twitch affiliate and partner accounts, storing revenue data and displaying earnings summaries in the backend and frontend",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-subscription-plans-page-in-the-frontend-displaying-monthly-and-annual-pricing-options-with-clear-descriptions-and-stripe-checkout-buttons",
+      "title": "Create a subscription plans page in the frontend displaying monthly and annual pricing options with clear descriptions and Stripe checkout buttons",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-subscription-status-display-and-management-to-the-user-interface-showing-current-plan-billing-period-next-payment-date-and-options-to-upgrade-downgrade-or-cancel",
+      "title": "Add subscription status display and management to the user interface showing current plan, billing period, next payment date, and options to upgrade, downgrade, or cancel",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-subscription-based-access-control-restricting-twitch-account-management-and-revenue-tracking-features-to-active-subscribers-only",
+      "title": "Implement subscription-based access control restricting Twitch account management and revenue tracking features to active subscribers only",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-dashboard-page-in-the-frontend-accessible-only-to-the-owner-showing-subscription-plan-management-interface",
+      "title": "Create an admin dashboard page in the frontend accessible only to the owner showing subscription plan management interface",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-owner-profile-display-in-the-frontend-showing-special-owner-badge-or-indicator",
+      "title": "Add owner profile display in the frontend showing special owner badge or indicator",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-navigation-link-in-the-header-that-is-only-visible-to-the-owner",
+      "title": "Add admin navigation link in the header that is only visible to the owner",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Automate Discord",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Automate Twitch",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Create a backend system that can store and manage automation tasks for Discord and Twitch services",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Implement a task scheduler system that can execute automation tasks at specified intervals or triggers",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add English language support to the interface",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement account creation system for Twitch affiliate and partner accounts with passive income tracking",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement a Twitch account management system that allows users to create and manage Twitch affiliate and partner accounts, storing account credentials and status in the backend",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add Stripe subscription system for app access with monthly/annual billing plans",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Create backend data model for subscription management including subscription tier (monthly/annual), status (active/inactive/cancelled), start date, end date, and Stripe customer ID stored per user profile",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Implement Stripe integration in the backend to handle subscription creation, payment processing, and webhook events for subscription status changes",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add admin login system with owner authentication",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Create admin dashboard for managing subscription prices and plans",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Implement owner profile with special permissions and recognition",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add an isOwner boolean field to the UserProfile data model in the backend to identify the app owner",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Create backend functions to check if the authenticated user is the owner and return owner status",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Create backend CRUD functions for managing subscription plans that are restricted to owner access only",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Update migration.mo to handle the new isOwner field when upgrading existing user profiles",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Stream Automation Hub",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

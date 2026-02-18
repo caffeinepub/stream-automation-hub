@@ -1,0 +1,106 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-18T17:06:38.000Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 7,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-15",
+        "summary": "Add an isOwner boolean field to the UserProfile data model in the backend to identify the app owner",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Create backend functions to check if the authenticated user is the owner and return owner status",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Create backend CRUD functions for managing subscription plans that are restricted to owner access only",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Create an admin dashboard page in the frontend accessible only to the owner showing subscription plan management interface",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Add owner profile display in the frontend showing special owner badge or indicator",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileCard.tsx",
+          "frontend/src/pages/SubscriptionManagementPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileCard.tsx",
+          "frontend/src/pages/SubscriptionManagementPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Add admin navigation link in the header that is only visible to the owner",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Update migration.mo to handle the new isOwner field when upgrading existing user profiles",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/Layout.tsx",
+    "frontend/src/components/ProfileCard.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/SubscriptionManagementPage.tsx",
+    "frontend/src/pages/SubscriptionPlansPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
