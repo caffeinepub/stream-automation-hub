@@ -36,7 +36,7 @@ export default function SubscriptionStatusCard() {
 
   const getTierLabel = () => {
     if (!userProfile?.subscriptionTier) return 'None';
-    return userProfile.subscriptionTier === 'monthly' ? 'Monthly' : 'Annual';
+    return userProfile.subscriptionTier === 'monthly' ? 'Monthly ($100/mo)' : 'Annual ($500/yr)';
   };
 
   if (isInactive) {
@@ -53,12 +53,43 @@ export default function SubscriptionStatusCard() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            You don't have an active subscription. Subscribe now to access full Twitch account management, 
-            unlimited revenue tracking, and priority support.
+            You don't have an active subscription. Subscribe now to access all premium features.
           </p>
-          <Button onClick={() => navigate({ to: '/subscription-plans' })} className="gap-2">
+          <Button onClick={() => navigate({ to: '/subscription-plans' })} className="w-full gap-2">
             <CreditCard className="h-4 w-4" />
-            View Plans
+            View Subscription Plans
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isCancelled) {
+    return (
+      <Card className="border-2 border-destructive/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <XCircle className="h-5 w-5 text-destructive" />
+            Subscription Cancelled
+          </CardTitle>
+          <CardDescription>
+            Your subscription has been cancelled
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Plan:</span>
+              <span className="font-medium">{getTierLabel()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Access Until:</span>
+              <span className="font-medium">{formatDate(userProfile?.subscriptionEndDate)}</span>
+            </div>
+          </div>
+          <Button onClick={() => navigate({ to: '/subscription-plans' })} className="w-full gap-2">
+            <CreditCard className="h-4 w-4" />
+            Resubscribe
           </Button>
         </CardContent>
       </Card>
@@ -66,60 +97,39 @@ export default function SubscriptionStatusCard() {
   }
 
   return (
-    <Card className={`border-2 ${isActive ? 'border-[oklch(0.55_0.12_120)]' : 'border-destructive/50'}`}>
+    <Card className="border-2 border-primary/50">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            {isActive ? (
-              <>
-                <CheckCircle2 className="h-5 w-5 text-[oklch(0.55_0.12_120)]" />
-                Active Subscription
-              </>
-            ) : (
-              <>
-                <XCircle className="h-5 w-5 text-destructive" />
-                Cancelled Subscription
-              </>
-            )}
-          </CardTitle>
-          <Badge variant={isActive ? 'default' : 'destructive'}>
-            {isActive ? 'Active' : 'Cancelled'}
-          </Badge>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-primary" />
+          Active Subscription
+        </CardTitle>
         <CardDescription>
-          {getTierLabel()} Plan
+          You have full access to all features
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Start Date</p>
-              <p className="text-sm text-muted-foreground">{formatDate(userProfile?.subscriptionStartDate)}</p>
-            </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Plan:</span>
+            <Badge variant="default">{getTierLabel()}</Badge>
           </div>
-          <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                {isActive ? 'Next Billing Date' : 'End Date'}
-              </p>
-              <p className="text-sm text-muted-foreground">{formatDate(userProfile?.subscriptionEndDate)}</p>
-            </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Started:</span>
+            <span className="font-medium">{formatDate(userProfile?.subscriptionStartDate)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Renews:</span>
+            <span className="font-medium">{formatDate(userProfile?.subscriptionEndDate)}</span>
           </div>
         </div>
-        {isCancelled && (
-          <div className="pt-4 border-t">
-            <p className="text-sm text-muted-foreground mb-3">
-              Your subscription has been cancelled. You'll continue to have access until the end date.
-            </p>
-            <Button onClick={() => navigate({ to: '/subscription-plans' })} variant="outline" className="gap-2">
-              <CreditCard className="h-4 w-4" />
-              Resubscribe
-            </Button>
-          </div>
-        )}
+        <Button
+          variant="outline"
+          onClick={() => navigate({ to: '/subscription-management' })}
+          className="w-full gap-2"
+        >
+          <Calendar className="h-4 w-4" />
+          Manage Subscription
+        </Button>
       </CardContent>
     </Card>
   );

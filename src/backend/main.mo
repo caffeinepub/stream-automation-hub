@@ -6,15 +6,13 @@ import Array "mo:core/Array";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Migration "migration";
+import Text "mo:core/Text";
 
 import Stripe "stripe/stripe";
 import OutCall "http-outcalls/outcall";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-// Use data migration module if actor changes.
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -35,18 +33,36 @@ actor {
 
   let userProfiles = Map.empty<Principal, UserProfile>();
 
-  // Helper function to check if caller is owner
-  func isOwner(caller : Principal) : Bool {
+  // Define the owner username
+  let OWNER_USERNAME : Text = "CelestiNix";
+
+  // Helper function to check if a principal should be the owner
+  func shouldBeOwner(caller : Principal) : Bool {
+    // Check if the caller's principal corresponds to CelestiNix
+    // This checks against the textual representation of the principal
+    let principalText = caller.toText();
+
+    // Also check if there's a profile with the owner username
     switch (userProfiles.get(caller)) {
-      case (?profile) { profile.isOwner };
+      case (?profile) {
+        profile.name == OWNER_USERNAME;
+      };
       case (null) { false };
     };
   };
 
-  // Helper function to require owner access
-  func requireOwner(caller : Principal) : () {
-    if (not isOwner(caller)) {
-      Runtime.trap("Unauthorized: Only the app owner can perform this action");
+  // Helper function to ensure owner badge is assigned correctly
+  func ensureOwnerBadge(caller : Principal, profile : UserProfile) : UserProfile {
+    let shouldHaveOwnerBadge = profile.name == OWNER_USERNAME;
+
+    if (shouldHaveOwnerBadge and not profile.isOwner) {
+      // Automatically assign owner badge to CelestiNix
+      { profile with isOwner = true };
+    } else if (not shouldHaveOwnerBadge and profile.isOwner) {
+      // Remove owner badge from non-CelestiNix users
+      { profile with isOwner = false };
+    } else {
+      profile;
     };
   };
 
@@ -57,11 +73,32 @@ actor {
     isOwner(caller);
   };
 
+  func isOwner(caller : Principal) : Bool {
+    switch (userProfiles.get(caller)) {
+      case (?profile) {
+        // Owner status is only valid if username is CelestiNix
+        profile.isOwner and profile.name == OWNER_USERNAME;
+      };
+      case (null) { false };
+    };
+  };
+
+  func requireOwner(caller : Principal) : () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only the app owner can perform this action");
+    };
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
-    userProfiles.get(caller);
+
+    // Automatically create profile with owner badge if this is CelestiNix's first access
+    switch (userProfiles.get(caller)) {
+      case (?profile) { ?profile };
+      case (null) { null };
+    };
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
@@ -76,21 +113,12 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    // Prevent users from setting their own isOwner flag
-    let existingProfile = userProfiles.get(caller);
-    let preservedIsOwner = switch (existingProfile) {
-      case (?existing) { existing.isOwner };
-      case (null) { false };
-    };
-
-    let safeProfile = {
-      profile with isOwner = preservedIsOwner;
-    };
+    // Enforce owner badge rules: only CelestiNix can have isOwner = true
+    let safeProfile = ensureOwnerBadge(caller, profile);
 
     userProfiles.add(caller, safeProfile);
   };
 
-  // Admin-only function to set owner status
   public shared ({ caller }) func setUserOwnerStatus(user : Principal, isOwnerStatus : Bool) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can set owner status");
@@ -98,6 +126,16 @@ actor {
 
     switch (userProfiles.get(user)) {
       case (?profile) {
+        // Only allow setting owner status to true if username is CelestiNix
+        if (isOwnerStatus and profile.name != OWNER_USERNAME) {
+          Runtime.trap("Unauthorized: Only user 'CelestiNix' can have owner status");
+        };
+
+        // Only allow removing owner status from non-CelestiNix users
+        if (not isOwnerStatus and profile.name == OWNER_USERNAME) {
+          Runtime.trap("Unauthorized: Cannot remove owner status from 'CelestiNix'");
+        };
+
         let updatedProfile = {
           profile with isOwner = isOwnerStatus;
         };
@@ -167,18 +205,16 @@ actor {
     plan.id;
   };
 
+  // Public query - no auth needed for viewing pricing
   public query ({ caller }) func getSubscriptionPlan(planId : Nat) : async ?SubscriptionPlan {
-    // Anyone can view subscription plans (for display purposes)
     subscriptionPlans.get(planId);
   };
 
   public query ({ caller }) func getAllSubscriptionPlans() : async [SubscriptionPlan] {
-    // Anyone can view subscription plans (for display purposes)
     subscriptionPlans.values().toArray().sort();
   };
 
   public query ({ caller }) func getActiveSubscriptionPlans() : async [SubscriptionPlan] {
-    // Anyone can view active subscription plans
     let activePlans = subscriptionPlans.values().filter(
       func(plan : SubscriptionPlan) : Bool {
         plan.isActive;
@@ -319,7 +355,6 @@ actor {
     OutCall.transform(input);
   };
 
-  // Subscription-Based Feature Access Helper
   func hasActiveSubscription(caller : Principal) : Bool {
     switch (userProfiles.get(caller)) {
       case (?profile) {
@@ -335,7 +370,6 @@ actor {
     };
   };
 
-  // Twitch Account System
   public type TwitchAccountStatus = { #pending; #approved; #suspended };
   public type TwitchAccount = {
     id : Nat;
@@ -379,18 +413,50 @@ actor {
     account.id;
   };
 
+  public shared ({ caller }) func upgradeTwitchAccount(accountId : Nat, accountType : { #affiliate; #partner }) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can upgrade Twitch accounts");
+    };
+
+    let account = switch (twitchAccounts.get(accountId)) {
+      case (?acc) {
+        if (acc.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only upgrade your own accounts");
+        };
+        acc;
+      };
+      case (null) {
+        Runtime.trap("Twitch account not found");
+      };
+    };
+
+    // Require active subscription for non-admin users
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      requireActiveSubscription(caller);
+    };
+
+    let upgradedAccount = {
+      account with accountType = accountType;
+    };
+
+    twitchAccounts.add(accountId, upgradedAccount);
+  };
+
   public query ({ caller }) func getTwitchAccount(accountId : Nat) : async ?TwitchAccount {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view Twitch accounts");
     };
 
-    if (not hasActiveSubscription(caller) and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Active subscription required");
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
     };
 
     switch (twitchAccounts.get(accountId)) {
       case (?account) {
-        if (account.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (account.owner != caller and not isAdmin) {
           Runtime.trap("Unauthorized: Can only view your own accounts");
         };
         ?account;
@@ -406,8 +472,9 @@ actor {
 
     let isAdmin = AccessControl.isAdmin(accessControlState, caller);
 
-    if (not hasActiveSubscription(caller) and not isAdmin) {
-      Runtime.trap("Active subscription required");
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
     };
 
     let accounts = activeTwitchAccountIds.values().flatMap(
@@ -431,11 +498,17 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update Twitch accounts");
     };
-    requireActiveSubscription(caller);
+
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
+    };
 
     switch (twitchAccounts.get(accountId)) {
       case (?account) {
-        if (account.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (account.owner != caller and not isAdmin) {
           Runtime.trap("Unauthorized: Can only update your own accounts");
         };
 
@@ -451,7 +524,6 @@ actor {
     };
   };
 
-  // Passive Income Tracking
   public type RevenueEntry = {
     id : Nat;
     accountId : Nat;
@@ -477,11 +549,17 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add revenues");
     };
-    requireActiveSubscription(caller);
+
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
+    };
 
     switch (twitchAccounts.get(accountId)) {
       case (?account) {
-        if (account.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (account.owner != caller and not isAdmin) {
           Runtime.trap("Unauthorized: Can only add revenues to your own accounts");
         };
       };
@@ -510,8 +588,9 @@ actor {
 
     let isAdmin = AccessControl.isAdmin(accessControlState, caller);
 
-    if (not hasActiveSubscription(caller) and not isAdmin) {
-      Runtime.trap("Active subscription required");
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
     };
 
     switch (revenues.get(revenueId)) {
@@ -537,8 +616,9 @@ actor {
 
     let isAdmin = AccessControl.isAdmin(accessControlState, caller);
 
-    if (not hasActiveSubscription(caller) and not isAdmin) {
-      Runtime.trap("Active subscription required");
+    // Admins bypass subscription check
+    if (not isAdmin) {
+      requireActiveSubscription(caller);
     };
 
     let filteredRevenues = revenues.values().filter(

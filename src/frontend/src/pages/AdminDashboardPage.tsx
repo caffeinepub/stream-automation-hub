@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Shield className="h-8 w-8 text-[oklch(0.65_0.15_40)]" />
+              <Shield className="h-8 w-8 text-primary" />
               Admin Dashboard
             </h1>
             <p className="text-muted-foreground mt-2">
@@ -188,7 +188,7 @@ export default function AdminDashboardPage() {
                     <Input
                       id="create-price"
                       type="number"
-                      placeholder="e.g., 999 for $9.99"
+                      placeholder="e.g., 10000 for $100"
                       value={formData.priceInCents}
                       onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
                     />
@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
                     <ul className="space-y-1">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="text-sm text-foreground flex items-start gap-2">
-                          <DollarSign className="h-4 w-4 text-[oklch(0.65_0.15_25)] mt-0.5 flex-shrink-0" />
+                          <DollarSign className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -351,7 +351,7 @@ export default function AdminDashboardPage() {
                 <Input
                   id="edit-price"
                   type="number"
-                  placeholder="e.g., 999 for $9.99"
+                  placeholder="e.g., 10000 for $100"
                   value={formData.priceInCents}
                   onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
                 />

@@ -216,6 +216,7 @@ export interface backendInterface {
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSubscriptionPlan(planId: bigint, name: string, description: string, priceInCents: bigint, features: Array<string>, isActive: boolean): Promise<void>;
     updateTwitchAccountStatus(accountId: bigint, status: TwitchAccountStatus): Promise<void>;
+    upgradeTwitchAccount(accountId: bigint, accountType: Variant_affiliate_partner): Promise<void>;
 }
 import type { RevenueEntry as _RevenueEntry, StripeSessionStatus as _StripeSessionStatus, SubscriptionPlan as _SubscriptionPlan, SubscriptionStatus as _SubscriptionStatus, SubscriptionTier as _SubscriptionTier, TwitchAccount as _TwitchAccount, TwitchAccountStatus as _TwitchAccountStatus, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -637,6 +638,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateTwitchAccountStatus(arg0, to_candid_TwitchAccountStatus_n37(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async upgradeTwitchAccount(arg0: bigint, arg1: Variant_affiliate_partner): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.upgradeTwitchAccount(arg0, to_candid_variant_n7(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.upgradeTwitchAccount(arg0, to_candid_variant_n7(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }

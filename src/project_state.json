@@ -1,10 +1,18 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
-  "summary": "Automation app for Discord or Twitch",
+  "projectStateVersion": 15,
+  "summary": "Automation and community app for Discord and Twitch with AI-powered game development assistance, finance tracking, and social features",
   "architectural_notes": [
     "Admin system requires role-based access control (RBAC) with owner role",
-    "Subscription management interface should be restricted to admin/owner access only"
+    "Subscription management interface should be restricted to admin/owner access only",
+    "Owner Twitch profile link should be displayed prominently in the UI for promotional purposes",
+    "Affiliate/partner status toggle requires subscription check for non-owner users",
+    "AI assistant integration should support project creation workflows (e.g., game development)",
+    "Finance tracking system requires secure storage of financial data",
+    "Donation system wallet linking must support multiple payment providers",
+    "Color scheme: purple and pink as primary brand colors throughout UI",
+    "Chat room feature requires real-time messaging infrastructure",
+    "Discord server management requires Discord API integration with bot permissions"
   ],
   "known_issues": [],
   "isFixRequest": false,
@@ -102,6 +110,118 @@
       "title": "Add admin navigation link in the header that is only visible to the owner",
       "reqIds": [
         "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-persistent-link-to-the-owner-s-twitch-account-https-www-twitch-tv-auroramoonveil-in-the-application-header-or-navigation-that-is-visible-to-all-users",
+      "title": "Add a persistent link to the owner's Twitch account (https://www.twitch.tv/auroramoonveil) in the application header or navigation that is visible to all users",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-button-that-allows-users-to-follow-the-owner-s-twitch-account-directly-from-the-application-interface",
+      "title": "Add a button that allows users to follow the owner's Twitch account directly from the application interface",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-one-click-status-upgrade-buttons-to-the-twitch-account-management-interface-that-allow-users-to-change-their-accounts-to-affiliate-or-partner-status-with-subscription-based-access-control-for-non-owners",
+      "title": "Add one-click status upgrade buttons to the Twitch account management interface that allow users to change their accounts to affiliate or partner status, with subscription-based access control for non-owners",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-an-ai-assistant-interface-that-helps-users-create-games-and-other-projects-through-conversational-interaction-similar-to-the-current-system-s-capabilities",
+      "title": "Integrate an AI assistant interface that helps users create games and other projects through conversational interaction, similar to the current system's capabilities",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-inuyasha-journey-themed-chat-room-feature-where-users-can-join-and-participate-in-real-time-conversations",
+      "title": "Create an Inuyasha Journey themed chat room feature where users can join and participate in real-time conversations",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-twitch-subscription-integration-that-allows-users-to-subscribe-to-the-owner-s-twitch-channel-https-www-twitch-tv-auroramoonveil-directly-from-the-application",
+      "title": "Add a Twitch subscription integration that allows users to subscribe to the owner's Twitch channel (https://www.twitch.tv/auroramoonveil) directly from the application",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-discord-server-builder-and-management-tools-that-help-users-create-and-configure-their-discord-servers",
+      "title": "Add Discord server builder and management tools that help users create and configure their Discord servers",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-application-color-scheme-to-purple-and-pink-tones-that-match-the-owner-s-twitch-channel-branding-https-www-twitch-tv-auroramoonveil-replacing-the-current-warm-earth-tones",
+      "title": "Update the application color scheme to purple and pink tones that match the owner's Twitch channel branding (https://www.twitch.tv/auroramoonveil), replacing the current warm earth tones",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-finance-tracking-system-that-monitors-income-and-expenses-storing-financial-data-in-the-backend-and-displaying-summaries-in-the-frontend",
+      "title": "Implement a finance tracking system that monitors income and expenses, storing financial data in the backend and displaying summaries in the frontend",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-calculator-tool-to-the-interface-that-users-can-access-for-performing-calculations",
+      "title": "Add a calculator tool to the interface that users can access for performing calculations",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-donation-management-system-with-wallet-linking-functionality-that-allows-users-to-connect-payment-wallets-for-receiving-donations",
+      "title": "Implement a donation management system with wallet linking functionality that allows users to connect payment wallets for receiving donations",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-subscription-pricing-to-500-per-year-for-annual-plans-and-100-per-month-for-monthly-plans-modifying-both-backend-pricing-logic-and-frontend-display",
+      "title": "Update subscription pricing to $500 per year for annual plans and $100 per month for monthly plans, modifying both backend pricing logic and frontend display",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-stripe-connect-login-button-at-the-top-of-the-page-header-that-is-only-visible-to-the-owner-celestinix-and-allows-them-to-link-subscriptions-to-their-bank-account",
+      "title": "Add a Stripe Connect login button at the top of the page header that is only visible to the owner (CelestiNix) and allows them to link subscriptions to their bank account",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-application-menu-background-color-from-white-to-light-blue-throughout-the-interface",
+      "title": "Update the application menu background color from white to light blue throughout the interface",
+      "reqIds": [
+        "REQ-36"
       ],
       "version": 1
     }
@@ -224,6 +344,118 @@
       "summary": "Update migration.mo to handle the new isOwner field when upgrading existing user profiles",
       "reqIds": [
         "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Add link to owner's Twitch account (https://www.twitch.tv/auroramoonveil) visible to all users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add follow button that allows users to follow the owner's Twitch account",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add one-click affiliate and partner status toggle for owner, with subscription requirement for other users to use this feature",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Create backend functions to upgrade a Twitch account to affiliate or partner status with one click, restricted to the owner without subscription requirement, but requiring active subscription for all other users",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Integrate AI assistant for helping users create games and other projects",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Update color scheme to purple and pink matching owner's Twitch channel branding",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add finance tracking system to monitor income and expenses",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Add calculator tool to the interface",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Implement donation management system with wallet linking functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Update subscription pricing to $500/year and $100/month",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Create Inuyasha Journey themed chat room feature",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Add Twitch subscription widget or integration to the interface",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Add Discord server builder/management tools",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Add admin dashboard link in header navigation or integrate with login system",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add Stripe login/dashboard link at top of page for owner only to manage subscription payouts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Update menu color scheme from white to light blue",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Implement automatic owner badge assignment for user 'CelestiNix' on login",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Implement automatic owner badge assignment when the user 'CelestiNix' logs in, ensuring no other user receives the owner badge",
+      "reqIds": [
+        "REQ-37"
       ],
       "status": "pending"
     }

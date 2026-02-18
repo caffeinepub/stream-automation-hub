@@ -1,103 +1,135 @@
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { Zap, DollarSign, TrendingUp } from 'lucide-react';
-import { SiTwitch } from 'react-icons/si';
+import { LogIn, Zap, DollarSign, TrendingUp, Shield, Bot, MessageCircle, Hash, Calculator as CalculatorIcon, Wallet } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, loginStatus } = useInternetIdentity();
 
   const isLoggingIn = loginStatus === 'logging-in';
 
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error: any) {
+      console.error('Login error:', error);
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-6xl mx-auto">
-        {/* Hero Section */}
-        <div className="relative mb-12 rounded-2xl overflow-hidden shadow-xl">
-          <img
-            src="/assets/generated/hero-banner.dim_1200x400.png"
-            alt="Stream Automation Hub"
-            className="w-full h-64 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
-            <div className="px-8 md:px-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-                Manage Your Twitch Revenue
-              </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-xl">
-                Track passive income from your Twitch affiliate and partner accounts
-              </p>
+    <div className="min-h-[calc(100vh-8rem)] flex flex-col">
+      <div
+        className="relative bg-cover bg-center py-20"
+        style={{ backgroundImage: 'url(/assets/generated/hero-banner-purple-pink.dim_1200x400.png)' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-secondary/90" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center text-white">
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                <Zap className="h-12 w-12 text-white" />
+              </div>
             </div>
+            <h1 className="text-5xl font-bold mb-4">Stream Automation Hub</h1>
+            <p className="text-xl text-white/90 mb-8">
+              Manage your Twitch revenue, track finances, and access powerful tools for content creators
+            </p>
+            <Button
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90 gap-2 text-lg px-8 py-6"
+            >
+              {isLoggingIn ? (
+                'Logging in...'
+              ) : (
+                <>
+                  <LogIn className="h-5 w-5" />
+                  Login with Internet Identity
+                </>
+              )}
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* Login Card */}
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-[oklch(0.65_0.15_25)] to-[oklch(0.55_0.12_120)] flex items-center justify-center mb-4 shadow-md">
-                <Zap className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Welcome Back</CardTitle>
-              <CardDescription className="text-base">
-                Login to manage your Twitch accounts and revenue
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={login}
-                disabled={isLoggingIn}
-                size="lg"
-                className="w-full text-lg h-12"
-              >
-                {isLoggingIn ? 'Logging in...' : 'Login with Internet Identity'}
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                Secure authentication powered by Internet Computer
-              </p>
-            </CardContent>
-          </Card>
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
+            Everything You Need to Succeed
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle>Twitch Revenue Tracking</CardTitle>
+                <CardDescription>
+                  Monitor your Twitch income, manage multiple accounts, and track revenue streams
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-          {/* Features */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Features</h2>
-            <div className="space-y-4">
-              <div className="flex gap-4 items-start p-4 rounded-lg bg-card border border-border">
-                <div className="w-10 h-10 rounded-lg bg-[oklch(0.55_0.12_120)]/10 flex items-center justify-center shrink-0">
-                  <SiTwitch className="h-5 w-5 text-[oklch(0.55_0.12_120)]" />
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <Bot className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Twitch Account Management</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add and manage multiple Twitch affiliate and partner accounts
-                  </p>
-                </div>
-              </div>
+                <CardTitle>AI Assistant</CardTitle>
+                <CardDescription>
+                  Get help creating games, apps, and projects with our intelligent AI assistant
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg bg-card border border-border">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <DollarSign className="h-5 w-5 text-primary" />
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <MessageCircle className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Revenue Tracking</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Track passive income from subscriptions, ads, and bits
-                  </p>
-                </div>
-              </div>
+                <CardTitle>Inuyasha Chat Room</CardTitle>
+                <CardDescription>
+                  Connect with other fans in our themed chat room with real-time messaging
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg bg-card border border-border">
-                <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                  <TrendingUp className="h-5 w-5 text-accent-foreground" />
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <Hash className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Income Analytics</h3>
-                  <p className="text-sm text-muted-foreground">
-                    View detailed revenue history and earnings breakdown
-                  </p>
+                <CardTitle>Discord Server Builder</CardTitle>
+                <CardDescription>
+                  Plan and configure your Discord server with our comprehensive tools
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <TrendingUp className="h-6 w-6 text-white" />
                 </div>
-              </div>
-            </div>
+                <CardTitle>Finance Tracker</CardTitle>
+                <CardDescription>
+                  Track income and expenses, monitor your financial health with detailed analytics
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+                  <Wallet className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle>Donation Manager</CardTitle>
+                <CardDescription>
+                  Connect payment wallets and track donations from your supporters
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </div>
       </div>

@@ -167,6 +167,11 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'upgradeTwitchAccount' : IDL.Func(
+      [IDL.Nat, IDL.Variant({ 'affiliate' : IDL.Null, 'partner' : IDL.Null })],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -339,6 +344,14 @@ export const idlFactory = ({ IDL }) => {
       ),
     'updateTwitchAccountStatus' : IDL.Func(
         [IDL.Nat, TwitchAccountStatus],
+        [],
+        [],
+      ),
+    'upgradeTwitchAccount' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Variant({ 'affiliate' : IDL.Null, 'partner' : IDL.Null }),
+        ],
         [],
         [],
       ),

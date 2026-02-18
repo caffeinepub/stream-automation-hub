@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { useGetTwitchAccount, useGetAllRevenueEntries } from '../hooks/useQueries';
+import { useGetTwitchAccount, useGetAllRevenueEntries, useUpgradeTwitchAccount, useGetCallerUserProfile, useCheckSubscriptionStatus } from '../hooks/useQueries';
+import { Variant_affiliate_partner } from '../backend';
 import RevenueChart from '../components/RevenueChart';
 import SubscriptionGuard from '../components/SubscriptionGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, DollarSign, TrendingUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ArrowLeft, DollarSign, TrendingUp, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
@@ -16,12 +18,27 @@ export default function RevenueDetailsPage() {
   
   const { data: account, isLoading: accountLoading } = useGetTwitchAccount(accountIdBigInt);
   const { data: allRevenues = [], isLoading: revenuesLoading } = useGetAllRevenueEntries();
+  const { data: userProfile } = useGetCallerUserProfile();
+  const { data: subscriptionStatus } = useCheckSubscriptionStatus();
+  const upgradeMutation = useUpgradeTwitchAccount();
 
   const accountRevenues = allRevenues.filter(
     (rev) => accountIdBigInt && rev.accountId === accountIdBigInt
   );
 
   const totalRevenue = accountRevenues.reduce((sum, entry) => sum + entry.amount, 0);
+
+  const isOwner = userProfile?.isOwner || false;
+  const hasActiveSubscription = subscriptionStatus === 'active';
+  const canUpgrade = isOwner || hasActiveSubscription;
+
+  const handleUpgrade = async (targetType: Variant_affiliate_partner) => {
+    if (!accountIdBigInt) return;
+    await upgradeMutation.mutateAsync({
+      accountId: accountIdBigInt,
+      accountType: targetType,
+    });
+  };
 
   if (accountLoading) {
     return (
@@ -43,6 +60,9 @@ export default function RevenueDetailsPage() {
       </div>
     );
   }
+
+  const isPartner = account.accountType === Variant_affiliate_partner.partner;
+  const isAffiliate = account.accountType === Variant_affiliate_partner.affiliate;
 
   return (
     <SubscriptionGuard>
@@ -82,8 +102,8 @@ export default function RevenueDetailsPage() {
               <div>
                 <CardTitle className="text-2xl">{account.username}</CardTitle>
                 <div className="flex gap-2 mt-2">
-                  <Badge variant={account.accountType === 'partner' ? 'default' : 'secondary'}>
-                    {account.accountType === 'partner' ? 'Partner' : 'Affiliate'}
+                  <Badge variant={isPartner ? 'default' : 'secondary'}>
+                    {isPartner ? 'Partner' : 'Affiliate'}
                   </Badge>
                   <Badge
                     variant={
@@ -97,6 +117,58 @@ export default function RevenueDetailsPage() {
                     {account.status.charAt(0).toUpperCase() + account.status.slice(1)}
                   </Badge>
                 </div>
+              </div>
+              <div className="flex gap-2">
+                {isAffiliate && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleUpgrade(Variant_affiliate_partner.partner)}
+                            disabled={!canUpgrade || upgradeMutation.isPending}
+                          >
+                            <Award className="h-4 w-4" />
+                            Upgrade to Partner
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      {!canUpgrade && (
+                        <TooltipContent>
+                          <p>Active subscription required</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {isPartner && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleUpgrade(Variant_affiliate_partner.affiliate)}
+                            disabled={!canUpgrade || upgradeMutation.isPending}
+                          >
+                            <TrendingUp className="h-4 w-4" />
+                            Change to Affiliate
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      {!canUpgrade && (
+                        <TooltipContent>
+                          <p>Active subscription required</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </div>
           </CardHeader>

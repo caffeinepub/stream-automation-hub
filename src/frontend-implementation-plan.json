@@ -1,74 +1,54 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add admin authentication and subscription management dashboard",
+  "title": "Add Stripe Connect login for owner with light blue menu styling",
   "requirements": [
     {
-      "id": "REQ-18",
-      "summary": "Create an admin dashboard page accessible only to the owner showing subscription plan management interface",
+      "id": "REQ-35",
+      "summary": "Add owner-only Stripe Connect login button in header navigation",
       "acceptanceCriteria": [
-        "Admin route added to routing configuration",
-        "Dashboard displays list of all subscription plans with their prices and details",
-        "Interface includes forms to create new subscription plans",
-        "Interface includes forms to edit existing plan prices and features",
-        "Interface includes buttons to delete or deactivate plans",
-        "Page is only accessible when user has owner status",
-        "Non-owner users are redirected or see access denied message"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "create",
-          "description": "Create admin dashboard page that displays all subscription plans in a table or card layout. Include forms to create new plans with name, description, tier (monthly/annual), price in cents, and features list. Provide edit forms for existing plans with inline editing or modal dialogs. Add toggle buttons to activate/deactivate plans and delete buttons with confirmation dialogs. Use the authorization component to verify owner status via useIsUserOwner hook and show access denied message for non-owners. Use useGetAllSubscriptionPlans, useCreateSubscriptionPlan, useUpdateSubscriptionPlan, useDeleteSubscriptionPlan, and useToggleSubscriptionPlanStatus hooks from useQueries.ts. Style with warm earth tone palette consistent with existing pages."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Add admin dashboard route at path '/admin' that renders AdminDashboardPage component. Place the route configuration after existing routes but before the catch-all. Ensure the route is protected by authentication and profile setup guards similar to other routes. Import AdminDashboardPage at the top of the file."
-        }
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "summary": "Add owner profile display showing special owner badge or indicator",
-      "acceptanceCriteria": [
-        "Profile page or profile section displays owner badge when user has isOwner = true",
-        "Owner indicator is visually distinct using warm earth tone palette",
-        "Non-owner users do not see owner badge",
-        "Owner profile includes access to admin dashboard link"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProfileCard.tsx",
-          "operation": "create",
-          "description": "Create a ProfileCard component that displays the current user's profile information including name and subscription details. When the user has isOwner = true in their UserProfile, display a distinctive owner badge using warm earth tones (e.g., amber or orange accent with a crown or shield icon). For owner users, include a button or link that navigates to '/admin' for accessing the admin dashboard. Use useGetCallerUserProfile hook to fetch profile data. Hide the owner badge and admin link for non-owner users. Apply consistent styling with the application's OKLCH color palette."
-        },
-        {
-          "path": "frontend/src/pages/SubscriptionManagementPage.tsx",
-          "operation": "modify",
-          "description": "Import and add ProfileCard component above the SubscriptionStatusCard to display user profile with owner badge when applicable. This provides visibility of owner status on the user's subscription management page."
-        }
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "summary": "Add admin navigation link in the header that is only visible to the owner",
-      "acceptanceCriteria": [
-        "Layout header includes 'Admin' navigation link when user is owner",
-        "Link navigates to admin dashboard",
-        "Link is hidden for non-owner users",
-        "Link uses consistent styling with existing navigation items"
+        "Stripe Connect login button appears in the header navigation",
+        "Button is only visible when the authenticated user is the owner",
+        "Clicking the button initiates Stripe Connect OAuth flow for linking bank account",
+        "Owner can manage subscription payouts through the Stripe dashboard after connecting"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/Layout.tsx",
           "operation": "modify",
-          "description": "Add an 'Admin' navigation link in the header navigation section that is conditionally rendered only when the user has owner status. Use useIsUserOwner hook to check owner status. Place the Admin link in the navigation items array after existing links (Twitch Accounts and Subscription). The link should navigate to '/admin' route. Apply the same styling as existing navigation items using Link component with activeProps and consistent className. Ensure the link is hidden (not rendered) for non-owner users."
+          "description": "Add Stripe Connect login button to the header navigation bar. The button should be conditionally rendered based on isOwner status from the user profile. Use the useGetCallerUserProfile hook to check if userProfile?.isOwner is true. Position the button in the header next to existing navigation items. The button should trigger the Stripe Connect OAuth flow when clicked, opening a new window to Stripe's OAuth URL with appropriate parameters for account linking. Include proper styling to match the existing header design and ensure the button is clearly labeled for bank account connection purposes."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add useIsUserOwner custom hook that calls the backend isUserOwner() function to check if the current authenticated user has owner status. Use useQuery with queryKey ['isUserOwner'] and enable the query only when actor is available. Return a boolean indicating owner status with proper loading and error states. This hook will be used by Layout.tsx and AdminDashboardPage.tsx to conditionally render owner-specific UI elements."
+          "description": "Add a new custom hook useInitiateStripeConnect that handles the Stripe Connect OAuth flow initiation. This hook should construct the Stripe Connect OAuth URL with the necessary parameters (client_id from environment variables, redirect_uri pointing back to the app, and scope for account access). The hook should return a function that opens the Stripe OAuth URL in a new window when called. Handle any errors during URL construction and provide appropriate error messages via toast notifications."
+        }
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "summary": "Update menu background color from white to light blue",
+      "acceptanceCriteria": [
+        "Header navigation bar background is light blue instead of white",
+        "Color change is consistent across all pages",
+        "Light blue tone complements the existing purple and pink color scheme",
+        "Text and icons remain clearly visible on the light blue background"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add a new CSS custom property for light blue menu background in the :root section. Define the color using OKLCH format to match the existing color system (e.g., --menu-bg: oklch(0.90 0.05 220)). Ensure the light blue tone is light enough for good contrast with text and complements the existing purple (hsl(262.1 83.3% 57.8%)) and pink color scheme."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Update the header navigation bar className to use the new light blue background color. Replace any existing white or transparent background classes with the new menu background color. Ensure text color and icon colors provide sufficient contrast on the light blue background. Test that the updated styling works correctly in both light and dark modes if theme switching is supported."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Add a new color token to the theme.extend.colors section for the light blue menu background (e.g., 'menu-bg': 'var(--menu-bg)'). This makes the color available as a Tailwind utility class (bg-menu-bg) for use throughout the application."
         }
       ]
     }

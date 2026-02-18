@@ -130,6 +130,10 @@ export interface _SERVICE {
     [bigint, TwitchAccountStatus],
     undefined
   >,
+  'upgradeTwitchAccount' : ActorMethod<
+    [bigint, { 'affiliate' : null } | { 'partner' : null }],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

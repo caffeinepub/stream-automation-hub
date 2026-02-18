@@ -1,10 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import type { TwitchAccount, RevenueEntry } from '../backend';
+import { Variant_affiliate_partner } from '../backend';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { DollarSign, Eye } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { DollarSign, Eye, TrendingUp, Award } from 'lucide-react';
 import { SiTwitch } from 'react-icons/si';
+import { useUpgradeTwitchAccount, useGetCallerUserProfile, useCheckSubscriptionStatus } from '../hooks/useQueries';
 
 interface TwitchAccountCardProps {
   account: TwitchAccount;
@@ -13,16 +16,31 @@ interface TwitchAccountCardProps {
 
 export default function TwitchAccountCard({ account, revenues }: TwitchAccountCardProps) {
   const navigate = useNavigate();
+  const { data: userProfile } = useGetCallerUserProfile();
+  const { data: subscriptionStatus } = useCheckSubscriptionStatus();
+  const upgradeMutation = useUpgradeTwitchAccount();
 
   const accountRevenues = revenues.filter((rev) => rev.accountId === account.id);
   const totalRevenue = accountRevenues.reduce((sum, entry) => sum + entry.amount, 0);
 
-  const isPartner = account.accountType === 'partner';
+  const isPartner = account.accountType === Variant_affiliate_partner.partner;
+  const isAffiliate = account.accountType === Variant_affiliate_partner.affiliate;
   const bgColor = isPartner ? 'bg-[oklch(0.65_0.15_25)]/10' : 'bg-[oklch(0.55_0.12_120)]/10';
   const iconColor = isPartner ? 'text-[oklch(0.65_0.15_25)]' : 'text-[oklch(0.55_0.12_120)]';
 
+  const isOwner = userProfile?.isOwner || false;
+  const hasActiveSubscription = subscriptionStatus === 'active';
+  const canUpgrade = isOwner || hasActiveSubscription;
+
   const handleViewRevenue = () => {
     navigate({ to: `/twitch-accounts/${account.id.toString()}/revenue` });
+  };
+
+  const handleUpgrade = async (targetType: Variant_affiliate_partner) => {
+    await upgradeMutation.mutateAsync({
+      accountId: account.id,
+      accountType: targetType,
+    });
   };
 
   return (
@@ -63,6 +81,59 @@ export default function TwitchAccountCard({ account, revenues }: TwitchAccountCa
             <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
           </div>
           <span className="text-lg font-bold text-foreground">${totalRevenue.toFixed(2)}</span>
+        </div>
+
+        <div className="flex gap-2">
+          {isAffiliate && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => handleUpgrade(Variant_affiliate_partner.partner)}
+                      disabled={!canUpgrade || upgradeMutation.isPending}
+                    >
+                      <Award className="h-4 w-4" />
+                      Upgrade to Partner
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!canUpgrade && (
+                  <TooltipContent>
+                    <p>Active subscription required</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {isPartner && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => handleUpgrade(Variant_affiliate_partner.affiliate)}
+                      disabled={!canUpgrade || upgradeMutation.isPending}
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      Change to Affiliate
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!canUpgrade && (
+                  <TooltipContent>
+                    <p>Active subscription required</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         <Button

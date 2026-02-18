@@ -108,6 +108,19 @@ export function useGetAllSubscriptionPlans() {
   });
 }
 
+export function useGetActiveSubscriptionPlans() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<SubscriptionPlan[]>({
+    queryKey: ['activeSubscriptionPlans'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getActiveSubscriptionPlans();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useCreateSubscriptionPlan() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -131,6 +144,7 @@ export function useCreateSubscriptionPlan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
       toast.success('Subscription plan created successfully');
     },
     onError: (error: Error) => {
@@ -164,6 +178,7 @@ export function useUpdateSubscriptionPlan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
       toast.success('Subscription plan updated successfully');
     },
     onError: (error: Error) => {
@@ -183,6 +198,7 @@ export function useDeleteSubscriptionPlan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
       toast.success('Subscription plan deleted successfully');
     },
     onError: (error: Error) => {
@@ -202,6 +218,7 @@ export function useToggleSubscriptionPlanStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
       toast.success('Plan status toggled successfully');
     },
     onError: (error: Error) => {
@@ -283,6 +300,32 @@ export function useUpdateTwitchAccountStatus() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to update account status: ${error.message}`);
+    },
+  });
+}
+
+export function useUpgradeTwitchAccount() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      accountId,
+      accountType,
+    }: {
+      accountId: bigint;
+      accountType: Variant_affiliate_partner;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.upgradeTwitchAccount(accountId, accountType);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
+      queryClient.invalidateQueries({ queryKey: ['twitchAccount'] });
+      toast.success('Account upgraded successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to upgrade account: ${error.message}`);
     },
   });
 }

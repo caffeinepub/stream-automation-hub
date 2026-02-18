@@ -133,4 +133,5 @@ export interface backendInterface {
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSubscriptionPlan(planId: bigint, name: string, description: string, priceInCents: bigint, features: Array<string>, isActive: boolean): Promise<void>;
     updateTwitchAccountStatus(accountId: bigint, status: TwitchAccountStatus): Promise<void>;
+    upgradeTwitchAccount(accountId: bigint, accountType: Variant_affiliate_partner): Promise<void>;
 }
