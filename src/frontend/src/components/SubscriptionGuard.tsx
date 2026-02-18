@@ -1,77 +1,87 @@
 import { ReactNode } from 'react';
-import { useCheckSubscriptionStatus } from '../hooks/useQueries';
+import { useGetCallerUserProfile } from '../hooks/useQueries';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Lock, CreditCard } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { SubscriptionStatus } from '../backend';
 
 interface SubscriptionGuardProps {
   children: ReactNode;
 }
 
 export default function SubscriptionGuard({ children }: SubscriptionGuardProps) {
-  const { data: subscriptionStatus, isLoading } = useCheckSubscriptionStatus();
+  const { data: userProfile, isLoading } = useGetCallerUserProfile();
   const navigate = useNavigate();
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Skeleton className="h-64 w-full" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (subscriptionStatus === 'inactive' || subscriptionStatus === 'cancelled') {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-2 border-primary">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Lock className="h-10 w-10 text-primary" />
-                </div>
-              </div>
-              <CardTitle className="text-3xl">Subscription Required</CardTitle>
-              <CardDescription className="text-base mt-2">
-                This feature requires an active subscription
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <p className="text-muted-foreground">
-                To access Twitch account management and revenue tracking features, you need an active subscription.
-              </p>
-              <ul className="text-left max-w-md mx-auto space-y-2 text-sm">
+  const isOwner = userProfile?.isOwner === true;
+  const hasActiveSubscription = userProfile?.subscriptionStatus === SubscriptionStatus.active;
+
+  if (isOwner || hasActiveSubscription) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-2xl mx-auto">
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Subscription Required</CardTitle>
+            <CardDescription className="text-base">
+              This feature requires an active subscription to access.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">Premium Features Include:</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-primary" />
-                  <span>Full Twitch account management</span>
+                  <span className="text-primary">✓</span>
+                  Unlimited Twitch account management
                 </li>
                 <li className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-primary" />
-                  <span>Unlimited revenue tracking</span>
+                  <span className="text-primary">✓</span>
+                  Advanced revenue tracking and analytics
                 </li>
                 <li className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-primary" />
-                  <span>Priority support</span>
+                  <span className="text-primary">✓</span>
+                  Finance tracker and donation manager
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">✓</span>
+                  Priority support
                 </li>
               </ul>
-            </CardContent>
-            <CardFooter className="flex justify-center">
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                size="lg"
                 onClick={() => navigate({ to: '/subscription-plans' })}
-                className="gap-2"
+                className="flex-1"
               >
-                <CreditCard className="h-4 w-4" />
                 View Subscription Plans
               </Button>
-            </CardFooter>
-          </Card>
-        </div>
+              <Button
+                onClick={() => navigate({ to: '/' })}
+                variant="outline"
+                className="flex-1"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    );
-  }
-
-  return <>{children}</>;
+    </div>
+  );
 }

@@ -1,29 +1,30 @@
 import { useState } from 'react';
-import { useIsUserOwner, useGetAllSubscriptionPlans, useCreateSubscriptionPlan, useUpdateSubscriptionPlan, useDeleteSubscriptionPlan, useToggleSubscriptionPlanStatus } from '../hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Plus, Edit, Trash2, Power, Loader2, DollarSign } from 'lucide-react';
-import { SubscriptionTier } from '../backend';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useGetCallerUserProfile, useGetAllSubscriptionPlans, useCreateSubscriptionPlan, useUpdateSubscriptionPlan, useDeleteSubscriptionPlan, useToggleSubscriptionPlanStatus } from '../hooks/useQueries';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
+import { Badge } from '../components/ui/badge';
+import { toast } from 'sonner';
+import { SubscriptionTier, SubscriptionPlan } from '../backend';
+import { Crown, Plus, Edit, Trash2, Power } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const { data: isOwner, isLoading: ownerLoading } = useIsUserOwner();
-  const { data: plans, isLoading: plansLoading } = useGetAllSubscriptionPlans();
+  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { data: plans = [], isLoading: plansLoading } = useGetAllSubscriptionPlans();
   const createPlan = useCreateSubscriptionPlan();
   const updatePlan = useUpdateSubscriptionPlan();
   const deletePlan = useDeleteSubscriptionPlan();
   const toggleStatus = useToggleSubscriptionPlanStatus();
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,11 +34,12 @@ export default function AdminDashboardPage() {
     features: '',
   });
 
-  if (ownerLoading) {
+  const isOwner = userProfile?.isOwner === true;
+
+  if (profileLoading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <Skeleton className="h-10 w-64 mb-8" />
-        <Skeleton className="h-96 w-full" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -47,60 +49,15 @@ export default function AdminDashboardPage() {
       <div className="container mx-auto px-4 py-12">
         <Card className="max-w-2xl mx-auto border-destructive">
           <CardHeader>
-            <CardTitle className="text-destructive flex items-center gap-2">
-              <Shield className="h-6 w-6" />
-              Access Denied
-            </CardTitle>
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
             <CardDescription>
-              You do not have permission to access the admin dashboard.
+              You do not have permission to access the admin dashboard. Only the app owner (CelestiNix) can access this area.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Only the app owner can manage subscription plans and settings.
-            </p>
-          </CardContent>
         </Card>
       </div>
     );
   }
-
-  const handleCreatePlan = async () => {
-    const features = formData.features.split('\n').filter(f => f.trim());
-    await createPlan.mutateAsync({
-      name: formData.name,
-      description: formData.description,
-      tier: formData.tier === 'monthly' ? SubscriptionTier.monthly : SubscriptionTier.annual,
-      priceInCents: BigInt(formData.priceInCents),
-      features,
-    });
-    setCreateDialogOpen(false);
-    resetForm();
-  };
-
-  const handleUpdatePlan = async () => {
-    if (!selectedPlan) return;
-    const features = formData.features.split('\n').filter(f => f.trim());
-    await updatePlan.mutateAsync({
-      planId: selectedPlan.id,
-      name: formData.name,
-      description: formData.description,
-      priceInCents: BigInt(formData.priceInCents),
-      features,
-      isActive: selectedPlan.isActive,
-    });
-    setEditDialogOpen(false);
-    setSelectedPlan(null);
-    resetForm();
-  };
-
-  const handleDeletePlan = async (planId: bigint) => {
-    await deletePlan.mutateAsync(planId);
-  };
-
-  const handleToggleStatus = async (planId: bigint) => {
-    await toggleStatus.mutateAsync(planId);
-  };
 
   const resetForm = () => {
     setFormData({
@@ -112,273 +69,336 @@ export default function AdminDashboardPage() {
     });
   };
 
-  const openEditDialog = (plan: any) => {
+  const handleCreate = async () => {
+    if (!formData.name || !formData.description || !formData.priceInCents || !formData.features) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      await createPlan.mutateAsync({
+        name: formData.name,
+        description: formData.description,
+        tier: formData.tier === 'monthly' ? SubscriptionTier.monthly : SubscriptionTier.annual,
+        priceInCents: BigInt(formData.priceInCents),
+        features: formData.features.split('\n').filter(f => f.trim()),
+      });
+      toast.success('Subscription plan created successfully');
+      setShowCreateDialog(false);
+      resetForm();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create plan');
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!selectedPlan || !formData.name || !formData.description || !formData.priceInCents || !formData.features) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      await updatePlan.mutateAsync({
+        planId: selectedPlan.id,
+        name: formData.name,
+        description: formData.description,
+        priceInCents: BigInt(formData.priceInCents),
+        features: formData.features.split('\n').filter(f => f.trim()),
+        isActive: selectedPlan.isActive,
+      });
+      toast.success('Subscription plan updated successfully');
+      setShowEditDialog(false);
+      setSelectedPlan(null);
+      resetForm();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update plan');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedPlan) return;
+
+    try {
+      await deletePlan.mutateAsync(selectedPlan.id);
+      toast.success('Subscription plan deleted successfully');
+      setShowDeleteDialog(false);
+      setSelectedPlan(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete plan');
+    }
+  };
+
+  const handleToggleStatus = async (planId: bigint) => {
+    try {
+      await toggleStatus.mutateAsync(planId);
+      toast.success('Plan status updated');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to toggle status');
+    }
+  };
+
+  const openEditDialog = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
+    const tierValue = plan.tier === SubscriptionTier.monthly ? 'monthly' : 'annual';
     setFormData({
       name: plan.name,
       description: plan.description,
-      tier: plan.tier === 'monthly' ? 'monthly' : 'annual',
+      tier: tierValue,
       priceInCents: plan.priceInCents.toString(),
       features: plan.features.join('\n'),
     });
-    setEditDialogOpen(true);
+    setShowEditDialog(true);
+  };
+
+  const getTierLabel = (tier: SubscriptionTier) => {
+    return tier === SubscriptionTier.monthly ? 'Monthly' : 'Annual';
+  };
+
+  const getTierPeriod = (tier: SubscriptionTier) => {
+    return tier === SubscriptionTier.monthly ? 'month' : 'year';
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Shield className="h-8 w-8 text-primary" />
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Manage subscription plans and pricing
-            </p>
-          </div>
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Plan
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create Subscription Plan</DialogTitle>
-                <DialogDescription>
-                  Add a new subscription plan with pricing and features
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="create-name">Plan Name</Label>
-                  <Input
-                    id="create-name"
-                    placeholder="e.g., Premium Monthly"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="create-description">Description</Label>
-                  <Textarea
-                    id="create-description"
-                    placeholder="Brief description of the plan"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="create-tier">Billing Period</Label>
-                    <Select value={formData.tier} onValueChange={(value: 'monthly' | 'annual') => setFormData({ ...formData, tier: value })}>
-                      <SelectTrigger id="create-tier">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="annual">Annual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="create-price">Price (in cents)</Label>
-                    <Input
-                      id="create-price"
-                      type="number"
-                      placeholder="e.g., 10000 for $100"
-                      value={formData.priceInCents}
-                      onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="create-features">Features (one per line)</Label>
-                  <Textarea
-                    id="create-features"
-                    placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
-                    rows={5}
-                    value={formData.features}
-                    onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreatePlan} disabled={createPlan.isPending || !formData.name || !formData.priceInCents}>
-                  {createPlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Plan
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <Crown className="h-8 w-8 text-amber-500" />
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
-
-        {plansLoading ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-64" />
-            ))}
-          </div>
-        ) : plans && plans.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            {plans.map((plan) => (
-              <Card key={plan.id.toString()} className={!plan.isActive ? 'opacity-60' : ''}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {plan.name}
-                        <Badge variant={plan.isActive ? 'default' : 'secondary'}>
-                          {plan.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription className="mt-2">{plan.description}</CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-4">
-                    <span className="text-3xl font-bold text-foreground">
-                      ${(Number(plan.priceInCents) / 100).toFixed(2)}
-                    </span>
-                    <span className="text-muted-foreground">
-                      / {plan.tier === 'monthly' ? 'month' : 'year'}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-2">Features:</p>
-                    <ul className="space-y-1">
-                      {plan.features.map((feature, idx) => (
-                        <li key={idx} className="text-sm text-foreground flex items-start gap-2">
-                          <DollarSign className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-2"
-                      onClick={() => openEditDialog(plan)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => handleToggleStatus(plan.id)}
-                      disabled={toggleStatus.isPending}
-                    >
-                      <Power className="h-4 w-4" />
-                      {plan.isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm" className="gap-2">
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Subscription Plan?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete the "{plan.name}" plan. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeletePlan(plan.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No subscription plans yet. Create your first plan to get started.</p>
-            </CardContent>
-          </Card>
-        )}
-
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Edit Subscription Plan</DialogTitle>
-              <DialogDescription>
-                Update the plan details, pricing, and features
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Plan Name</Label>
-                <Input
-                  id="edit-name"
-                  placeholder="e.g., Premium Monthly"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  placeholder="Brief description of the plan"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-price">Price (in cents)</Label>
-                <Input
-                  id="edit-price"
-                  type="number"
-                  placeholder="e.g., 10000 for $100"
-                  value={formData.priceInCents}
-                  onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-features">Features (one per line)</Label>
-                <Textarea
-                  id="edit-features"
-                  placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
-                  rows={5}
-                  value={formData.features}
-                  onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdatePlan} disabled={updatePlan.isPending || !formData.name || !formData.priceInCents}>
-                {updatePlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Plan
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <p className="text-muted-foreground">Manage subscription plans and application settings</p>
       </div>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Subscription Plans</CardTitle>
+              <CardDescription>Create and manage subscription tiers for your users</CardDescription>
+            </div>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Plan
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {plansLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : plans.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No subscription plans yet.</p>
+              <p className="text-sm mt-2">Create your first plan to get started.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {plans.map((plan) => (
+                <Card key={plan.id.toString()}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CardTitle className="text-lg">{plan.name}</CardTitle>
+                          <Badge variant={plan.isActive ? 'default' : 'secondary'}>
+                            {plan.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                          <Badge variant="outline">
+                            {getTierLabel(plan.tier)}
+                          </Badge>
+                        </div>
+                        <CardDescription>{plan.description}</CardDescription>
+                        <p className="text-2xl font-bold mt-2">
+                          ${(Number(plan.priceInCents) / 100).toFixed(2)}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            /{getTierPeriod(plan.tier)}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleToggleStatus(plan.id)}
+                        >
+                          <Power className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => openEditDialog(plan)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedPlan(plan);
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium mb-2">Features:</p>
+                      {plan.features.map((feature, idx) => (
+                        <p key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                          <span className="text-primary">✓</span>
+                          {feature}
+                        </p>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Subscription Plan</DialogTitle>
+            <DialogDescription>Add a new subscription tier for your users</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Plan Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Premium"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="tier">Billing Period</Label>
+              <Select value={formData.tier} onValueChange={(value: 'monthly' | 'annual') => setFormData({ ...formData, tier: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="annual">Annual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="price">Price (in cents)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={formData.priceInCents}
+                onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
+                placeholder="e.g., 999 for $9.99"
+              />
+            </div>
+            <div>
+              <Label htmlFor="features">Features (one per line)</Label>
+              <Textarea
+                id="features"
+                value={formData.features}
+                onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={createPlan.isPending}>
+              {createPlan.isPending ? 'Creating...' : 'Create Plan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Subscription Plan</DialogTitle>
+            <DialogDescription>Update the subscription plan details</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Plan Name</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Description</Label>
+              <Input
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-price">Price (in cents)</Label>
+              <Input
+                id="edit-price"
+                type="number"
+                value={formData.priceInCents}
+                onChange={(e) => setFormData({ ...formData, priceInCents: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-features">Features (one per line)</Label>
+              <Textarea
+                id="edit-features"
+                value={formData.features}
+                onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEdit} disabled={updatePlan.isPending}>
+              {updatePlan.isPending ? 'Updating...' : 'Update Plan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Subscription Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedPlan?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deletePlan.isPending}>
+              {deletePlan.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

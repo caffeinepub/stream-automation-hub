@@ -1,4 +1,6 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
+import { StrictMode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import TwitchAccountsPage from './pages/TwitchAccountsPage';
@@ -8,319 +10,55 @@ import SubscriptionManagementPage from './pages/SubscriptionManagementPage';
 import SubscriptionSuccessPage from './pages/SubscriptionSuccessPage';
 import SubscriptionCancelledPage from './pages/SubscriptionCancelledPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import AIAssistantPage from './pages/AIAssistantPage';
-import ChatRoomPage from './pages/ChatRoomPage';
-import DiscordToolsPage from './pages/DiscordToolsPage';
-import FinanceTrackerPage from './pages/FinanceTrackerPage';
-import CalculatorPage from './pages/CalculatorPage';
-import DonationManagerPage from './pages/DonationManagerPage';
+import TrackingPage from './pages/TrackingPage';
 import ProfileSetup from './components/ProfileSetup';
-import { useGetCallerUserProfile } from './hooks/useQueries';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { Loader2 } from 'lucide-react';
+import { useGetCallerUserProfile } from './hooks/useQueries';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function RootComponent() {
+  const { identity, isInitializing } = useInternetIdentity();
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  
+  const isAuthenticated = !!identity;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  if (isInitializing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Layout>
+        <Outlet />
+      </Layout>
+      {showProfileSetup && <ProfileSetup />}
+    </>
+  );
+}
 
 function IndexComponent() {
   const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <TwitchAccountsPage />;
-}
-
-function TwitchAccountsComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <TwitchAccountsPage />;
-}
-
-function RevenueDetailsComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <RevenueDetailsPage />;
-}
-
-function SubscriptionPlansComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <SubscriptionPlansPage />;
-}
-
-function SubscriptionManagementComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <SubscriptionManagementPage />;
-}
-
-function AdminDashboardComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <AdminDashboardPage />;
-}
-
-function AIAssistantComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <AIAssistantPage />;
-}
-
-function ChatRoomComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <ChatRoomPage />;
-}
-
-function DiscordToolsComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <DiscordToolsPage />;
-}
-
-function FinanceTrackerComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <FinanceTrackerPage />;
-}
-
-function CalculatorComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <CalculatorPage />;
-}
-
-function DonationManagerComponent() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  if (profileLoading || !isFetched) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (userProfile === null) {
-    return <ProfileSetup />;
-  }
-
-  return <DonationManagerPage />;
+  return identity ? <TwitchAccountsPage /> : <LoginPage />;
 }
 
 const rootRoute = createRootRoute({
-  component: Layout,
+  component: RootComponent,
 });
 
 const indexRoute = createRoute({
@@ -332,25 +70,25 @@ const indexRoute = createRoute({
 const twitchAccountsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/twitch-accounts',
-  component: TwitchAccountsComponent,
+  component: TwitchAccountsPage,
 });
 
 const revenueDetailsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/twitch-accounts/$accountId/revenue',
-  component: RevenueDetailsComponent,
+  path: '/revenue/$accountId',
+  component: RevenueDetailsPage,
 });
 
 const subscriptionPlansRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/subscription-plans',
-  component: SubscriptionPlansComponent,
+  component: SubscriptionPlansPage,
 });
 
 const subscriptionManagementRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/subscription-management',
-  component: SubscriptionManagementComponent,
+  component: SubscriptionManagementPage,
 });
 
 const subscriptionSuccessRoute = createRoute({
@@ -368,43 +106,13 @@ const subscriptionCancelledRoute = createRoute({
 const adminDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
-  component: AdminDashboardComponent,
+  component: AdminDashboardPage,
 });
 
-const aiAssistantRoute = createRoute({
+const trackingRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/ai-assistant',
-  component: AIAssistantComponent,
-});
-
-const chatRoomRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/chat-room',
-  component: ChatRoomComponent,
-});
-
-const discordToolsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/discord-tools',
-  component: DiscordToolsComponent,
-});
-
-const financeTrackerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/finance-tracker',
-  component: FinanceTrackerComponent,
-});
-
-const calculatorRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/calculator',
-  component: CalculatorComponent,
-});
-
-const donationManagerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/donation-manager',
-  component: DonationManagerComponent,
+  path: '/tracking',
+  component: TrackingPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -416,12 +124,7 @@ const routeTree = rootRoute.addChildren([
   subscriptionSuccessRoute,
   subscriptionCancelledRoute,
   adminDashboardRoute,
-  aiAssistantRoute,
-  chatRoomRoute,
-  discordToolsRoute,
-  financeTrackerRoute,
-  calculatorRoute,
-  donationManagerRoute,
+  trackingRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -433,5 +136,11 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>
+  );
 }

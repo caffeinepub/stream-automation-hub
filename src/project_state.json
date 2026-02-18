@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 17,
   "summary": "Automation and community app for Discord and Twitch with AI-powered game development assistance, finance tracking, and social features",
   "architectural_notes": [
     "Admin system requires role-based access control (RBAC) with owner role",
@@ -14,8 +14,12 @@
     "Chat room feature requires real-time messaging infrastructure",
     "Discord server management requires Discord API integration with bot permissions"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Owner badge not displaying correctly",
+    "Admin login causing simultaneous user login",
+    "Tracking page not separated from admin dashboard"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-a-user-interface-that-allows-users-to-create-view-edit-and-delete-automation-tasks-for-discord-and-twitch",
@@ -222,6 +226,46 @@
       "title": "Update the application menu background color from white to light blue throughout the interface",
       "reqIds": [
         "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-move-the-tracking-functionality-revenue-tracking-finance-tracker-donation-manager-to-a-separate-dedicated-page-distinct-from-the-admin-dashboard-in-the-frontend-routing",
+      "title": "Move the tracking functionality (revenue tracking, finance tracker, donation manager) to a separate dedicated page distinct from the admin dashboard in the frontend routing",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-stripe-secret-key-configuration-with-a-stripe-connect-oauth-flow-that-allows-the-owner-to-link-their-stripe-account-to-any-bank-account-they-have-connected-to-stripe",
+      "title": "Replace the Stripe secret key configuration with a Stripe Connect OAuth flow that allows the owner to link their Stripe account to any bank account they have connected to Stripe",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enforce-subscription-requirement-for-all-users-except-the-owner-to-access-advanced-features-including-ai-assistant-chat-room-discord-tools-finance-tracker-calculator-and-donation-manager",
+      "title": "Enforce subscription requirement for all users (except the owner) to access advanced features including AI assistant, chat room, Discord tools, finance tracker, calculator, and donation manager",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-authentication-flow-to-prevent-admin-login-from-triggering-a-simultaneous-user-login-ensuring-that-when-the-owner-logs-in-as-admin-they-are-only-authenticated-in-the-admin-context",
+      "title": "Fix the authentication flow to prevent admin login from triggering a simultaneous user login, ensuring that when the owner logs in as admin, they are only authenticated in the admin context",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-owner-badge-display-to-correctly-show-the-owner-indicator-for-the-user-celestinix-in-the-profile-card-and-throughout-the-interface-based-on-the-isowner-field-from-the-backend",
+      "title": "Fix the owner badge display to correctly show the owner indicator for the user 'CelestiNix' in the profile card and throughout the interface based on the isOwner field from the backend",
+      "reqIds": [
+        "REQ-44"
       ],
       "version": 1
     }
@@ -456,6 +500,58 @@
       "summary": "Implement automatic owner badge assignment when the user 'CelestiNix' logs in, ensuring no other user receives the owner badge",
       "reqIds": [
         "REQ-37"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Restrict admin login to owner (CelestiNix) only - prevent all other users from accessing admin login",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Automatically recognize owner when Twitch profile is entered during profile setup",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Move tracking functionality to separate page from admin dashboard",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Replace secret Stripe key with Stripe Connect login that links to owner's bank account",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Fix dual login issue - admin should not trigger user login simultaneously",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Fix owner badge display functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Restrict admin dashboard access to only the user 'CelestiNix' by checking the caller's principal or username in the backend and rejecting all other users with an appropriate error message",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Implement automatic owner recognition when the user enters their Twitch username during profile setup, setting isOwner to true if the Twitch username matches the owner's Twitch account (auroramoonveil)",
+      "reqIds": [
+        "REQ-39"
       ],
       "status": "pending"
     }

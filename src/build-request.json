@@ -1,78 +1,153 @@
 {
   "kind": "build_request",
-  "title": "Add Stripe Connect login for owner with light blue menu styling",
-  "priority": "normal",
+  "title": "Fix admin access control and owner recognition system",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-35",
-      "text": "Add a Stripe Connect login button at the top of the page header that is only visible to the owner (CelestiNix) and allows them to link subscriptions to their bank account",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Add stripe login at the top of the page",
-          "make sure the stripe login is for me aka owner to link subscriptions to bank account"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Stripe Connect login button appears in the header navigation",
-        "Button is only visible when the authenticated user is the owner",
-        "Clicking the button initiates Stripe Connect OAuth flow for linking bank account",
-        "Owner can manage subscription payouts through the Stripe dashboard after connecting"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Update the application menu background color from white to light blue throughout the interface",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "add a light blue color scheme to the menu instead of white"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Header navigation bar background is light blue instead of white",
-        "Color change is consistent across all pages",
-        "Light blue tone complements the existing purple and pink color scheme",
-        "Text and icons remain clearly visible on the light blue background"
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Implement automatic owner badge assignment when the user 'CelestiNix' logs in, ensuring no other user receives the owner badge",
+      "id": "REQ-38",
+      "text": "Restrict admin dashboard access to only the user 'CelestiNix' by checking the caller's principal or username in the backend and rejecting all other users with an appropriate error message",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-latest"
         ],
         "quotes": [
-          "when i login im instantly given owner badge no other user gets that if im login as CelestiNix thats me the owner"
+          "fix the admin login to prevent other users except for me that is currently logined asking you to do this aka me to be the only one to login"
         ]
       },
       "acceptanceCriteria": [
-        "User profile with username 'CelestiNix' has isOwner set to true automatically",
-        "Owner badge is displayed in the frontend when CelestiNix is logged in",
-        "No other username can receive the owner badge",
-        "Owner status is checked and set on every login/profile fetch"
+        "Only the owner 'CelestiNix' can access admin functions",
+        "All other users receive an access denied error when attempting admin operations",
+        "Admin dashboard checks owner status before rendering any admin content"
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Implement automatic owner recognition when the user enters their Twitch username during profile setup, setting isOwner to true if the Twitch username matches the owner's Twitch account (auroramoonveil)",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "for profile make it so im recognized as the apps owner and if i situp a profile when i enter my twitch the website will recognize me as the sole app admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile setup checks if the entered Twitch username is 'auroramoonveil'",
+        "If match is found, automatically set isOwner field to true",
+        "Owner status is persisted in the user profile",
+        "Profile setup validation ensures only one owner exists in the system"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Move the tracking functionality (revenue tracking, finance tracker, donation manager) to a separate dedicated page distinct from the admin dashboard in the frontend routing",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "the tracking part of the app should be given its own page separately from the admin page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Create a new route for tracking features separate from /admin",
+        "Tracking page displays revenue tracking, finance tracking, and donation management in a unified view",
+        "Admin dashboard no longer includes tracking functionality",
+        "Navigation includes a link to the new tracking page"
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Replace the Stripe secret key configuration with a Stripe Connect OAuth flow that allows the owner to link their Stripe account to any bank account they have connected to Stripe",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "instead of secret stripe key it will has its own stripe login connecting to any known bank account that i may have"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Stripe Connect button initiates OAuth flow for account linking",
+        "Owner can connect their Stripe account to their chosen bank accounts",
+        "Subscription payments are routed to the connected Stripe account",
+        "Backend stores Stripe Connect account ID for the owner"
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Enforce subscription requirement for all users (except the owner) to access advanced features including AI assistant, chat room, Discord tools, finance tracker, calculator, and donation manager",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "for users subscriptions will be needed for users to use the apps advanced futures"
+        ]
+      },
+      "acceptanceCriteria": [
+        "SubscriptionGuard blocks non-subscribed users from accessing advanced features",
+        "Owner (CelestiNix) bypasses subscription checks for all features",
+        "Clear subscription required message displayed to non-subscribed users",
+        "Backend validates subscription status before processing requests for protected features"
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Fix the authentication flow to prevent admin login from triggering a simultaneous user login, ensuring that when the owner logs in as admin, they are only authenticated in the admin context",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "there is a problem with wheb i login to the admin part it has me login as a user as well fix that to where im only login as admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin login flow does not create or trigger a separate user profile creation",
+        "Owner authentication provides admin access without redundant user login",
+        "Single authentication session handles both admin and owner privileges",
+        "No duplicate login prompts or profile setup screens appear for admin"
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "text": "Fix the owner badge display to correctly show the owner indicator for the user 'CelestiNix' in the profile card and throughout the interface based on the isOwner field from the backend",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "owner badge isn't working, fix that as well"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Owner badge appears consistently in ProfileCard component when isOwner is true",
+        "Badge styling is visually distinct and clearly indicates owner status",
+        "Badge displays immediately after profile data loads",
+        "Badge does not appear for non-owner users"
       ]
     }
   ],
   "constraints": [
-    "Respect the existing single-actor backend architecture in backend/main.mo",
-    "Do not modify read-only frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
-    "Preserve existing purple and pink color scheme while adding light blue to the menu",
-    "Maintain existing owner authentication and permission system"
+    "Maintain existing Stripe integration functionality while adding Connect OAuth",
+    "Preserve all existing subscription and revenue tracking data during changes",
+    "Keep the single-actor backend architecture",
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Ensure owner 'CelestiNix' retains all existing privileges"
   ],
   "nonGoals": [
-    "Changing the overall application color scheme beyond the menu background",
-    "Adding Stripe Connect functionality for non-owner users",
-    "Modifying the existing subscription payment flow",
-    "Creating new user roles beyond the existing owner role"
+    "Changing the overall application color scheme or branding",
+    "Modifying subscription pricing",
+    "Adding new features beyond fixing the identified issues",
+    "Changing the basic structure of the Twitch account management system"
   ],
   "imageRequirements": {
     "required": [],

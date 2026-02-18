@@ -1,60 +1,127 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T19:17:40.379Z",
+  "generatedAt": "2026-02-18T20:35:26.970Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 7,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-35",
-        "summary": "Add a Stripe Connect login button at the top of the page header that is only visible to the owner (CelestiNix) and allows them to link subscriptions to their bank account",
+        "id": "REQ-38",
+        "summary": "Restrict admin dashboard access to only the user 'CelestiNix' by checking the caller's principal or username in the backend and rejecting all other users with an appropriate error message",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Implement automatic owner recognition when the user enters their Twitch username during profile setup, setting isOwner to true if the Twitch username matches the owner's Twitch account (auroramoonveil)",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-40",
+        "summary": "Move the tracking functionality (revenue tracking, finance tracker, donation manager) to a separate dedicated page distinct from the admin dashboard in the frontend routing",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/TrackingPage.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/components/Layout.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/AdminDashboardPage.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/pages/TrackingPage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-41",
+        "summary": "Replace the Stripe secret key configuration with a Stripe Connect OAuth flow that allows the owner to link their Stripe account to any bank account they have connected to Stripe",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/StripeConnectSetup.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/components/Layout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx",
           "frontend/src/components/Layout.tsx"
         ]
       },
       {
-        "id": "REQ-36",
-        "summary": "Update the application menu background color from white to light blue throughout the interface",
+        "id": "REQ-42",
+        "summary": "Enforce subscription requirement for all users (except the owner) to access advanced features including AI assistant, chat room, Discord tools, finance tracker, calculator, and donation manager",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Layout.tsx",
-          "frontend/tailwind.config.js"
+          "frontend/src/components/SubscriptionGuard.tsx",
+          "frontend/src/pages/AIAssistantPage.tsx",
+          "frontend/src/pages/ChatRoomPage.tsx",
+          "frontend/src/pages/DiscordToolsPage.tsx",
+          "frontend/src/pages/FinanceTrackerPage.tsx",
+          "frontend/src/pages/DonationManagerPage.tsx",
+          "frontend/src/pages/CalculatorPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Layout.tsx",
-          "frontend/tailwind.config.js"
+          "frontend/src/components/SubscriptionGuard.tsx"
         ]
       },
       {
-        "id": "REQ-37",
-        "summary": "Implement automatic owner badge assignment when the user 'CelestiNix' logs in, ensuring no other user receives the owner badge",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-43",
+        "summary": "Fix the authentication flow to prevent admin login from triggering a simultaneous user login, ensuring that when the owner logs in as admin, they are only authenticated in the admin context",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-44",
+        "summary": "Fix the owner badge display to correctly show the owner indicator for the user 'CelestiNix' in the profile card and throughout the interface based on the isOwner field from the backend",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileCard.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileCard.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
     "frontend/src/components/Layout.tsx",
-    "frontend/src/index.css",
-    "frontend/tailwind.config.js",
+    "frontend/src/components/ProfileCard.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/components/SubscriptionGuard.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/TrackingPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

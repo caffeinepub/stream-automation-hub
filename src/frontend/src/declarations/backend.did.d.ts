@@ -67,6 +67,7 @@ export type TwitchAccountStatus = { 'pending' : null } |
   { 'approved' : null } |
   { 'suspended' : null };
 export interface UserProfile {
+  'twitchUsername' : [] | [string],
   'subscriptionEndDate' : [] | [bigint],
   'name' : string,
   'subscriptionTier' : [] | [SubscriptionTier],
@@ -88,7 +89,6 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addRevenueEntry' : ActorMethod<[bigint, number, string], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'checkSubscriptionStatus' : ActorMethod<[], SubscriptionStatus>,
   'createCheckoutSession' : ActorMethod<
     [Array<ShoppingItem>, string, string],
     string
@@ -104,9 +104,18 @@ export interface _SERVICE {
   >,
   'deleteSubscriptionPlan' : ActorMethod<[bigint], undefined>,
   'getActiveSubscriptionPlans' : ActorMethod<[], Array<SubscriptionPlan>>,
+  'getAdminDashboardStats' : ActorMethod<
+    [],
+    {
+      'totalUsers' : bigint,
+      'totalRevenue' : number,
+      'activeSubscriptions' : bigint,
+    }
+  >,
   'getAllRevenueEntries' : ActorMethod<[], Array<RevenueEntry>>,
   'getAllSubscriptionPlans' : ActorMethod<[], Array<SubscriptionPlan>>,
   'getAllTwitchAccounts' : ActorMethod<[], Array<TwitchAccount>>,
+  'getAllUsersAdmin' : ActorMethod<[], Array<UserProfile>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getRevenueEntry' : ActorMethod<[bigint], [] | [RevenueEntry]>,
@@ -116,7 +125,6 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isStripeConfigured' : ActorMethod<[], boolean>,
-  'isUserOwner' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
   'setUserOwnerStatus' : ActorMethod<[Principal, boolean], undefined>,

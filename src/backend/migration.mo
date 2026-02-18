@@ -1,24 +1,9 @@
 import Map "mo:core/Map";
+import Nat "mo:core/Nat";
 import Principal "mo:core/Principal";
 
 module {
-  // Actor before migration.
-  type OldActor = {
-    userProfiles : Map.Map<Principal, OldUserProfile>;
-  };
-
-  // Old profile model before migration.
   type OldUserProfile = {
-    name : Text;
-    stripeCustomerId : ?Text;
-    subscriptionStatus : { #inactive; #active; #cancelled };
-    subscriptionTier : ?{ #monthly; #annual };
-    subscriptionStartDate : ?Nat;
-    subscriptionEndDate : ?Nat;
-  };
-
-  // New profile model with isOwner field after migration.
-  type NewUserProfile = {
     name : Text;
     isOwner : Bool;
     stripeCustomerId : ?Text;
@@ -28,18 +13,40 @@ module {
     subscriptionEndDate : ?Nat;
   };
 
-  // Actor after migration. All unchanged remaining state fields omitted for brevity.
+  type NewUserProfile = {
+    name : Text;
+    isOwner : Bool;
+    twitchUsername : ?Text;
+    stripeCustomerId : ?Text;
+    subscriptionStatus : { #inactive; #active; #cancelled };
+    subscriptionTier : ?{ #monthly; #annual };
+    subscriptionStartDate : ?Nat;
+    subscriptionEndDate : ?Nat;
+  };
+
+  type OldActor = {
+    userProfiles : Map.Map<Principal, OldUserProfile>;
+  };
+
   type NewActor = {
     userProfiles : Map.Map<Principal, NewUserProfile>;
   };
 
-  /// Performs upgrade transformation from old actor to new actor with isOwner flag support.
   public func run(old : OldActor) : NewActor {
-    let newUserProfiles = old.userProfiles.map<Principal, OldUserProfile, NewUserProfile>(
-      func(_principal, oldProfile) {
-        { oldProfile with isOwner = false };
-      }
-    );
+    let newUserProfiles = Map.empty<Principal, NewUserProfile>();
+    for ((principal, oldProfile) in old.userProfiles.entries()) {
+      let newProfile : NewUserProfile = {
+        name = oldProfile.name;
+        isOwner = oldProfile.isOwner;
+        twitchUsername = null;
+        stripeCustomerId = oldProfile.stripeCustomerId;
+        subscriptionStatus = oldProfile.subscriptionStatus;
+        subscriptionTier = oldProfile.subscriptionTier;
+        subscriptionStartDate = oldProfile.subscriptionStartDate;
+        subscriptionEndDate = oldProfile.subscriptionEndDate;
+      };
+      newUserProfiles.add(principal, newProfile);
+    };
     { userProfiles = newUserProfiles };
   };
 };

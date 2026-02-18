@@ -72,6 +72,7 @@ export interface StripeConfiguration {
     secretKey: string;
 }
 export interface UserProfile {
+    twitchUsername?: string;
     subscriptionEndDate?: bigint;
     name: string;
     subscriptionTier?: SubscriptionTier;
@@ -106,16 +107,21 @@ export enum Variant_affiliate_partner {
 export interface backendInterface {
     addRevenueEntry(accountId: bigint, amount: number, description: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    checkSubscriptionStatus(): Promise<SubscriptionStatus>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
     createStripeSubscription(planId: bigint): Promise<string>;
     createSubscriptionPlan(name: string, description: string, tier: SubscriptionTier, priceInCents: bigint, features: Array<string>): Promise<bigint>;
     createTwitchAccount(username: string, accountType: Variant_affiliate_partner): Promise<bigint>;
     deleteSubscriptionPlan(planId: bigint): Promise<void>;
     getActiveSubscriptionPlans(): Promise<Array<SubscriptionPlan>>;
+    getAdminDashboardStats(): Promise<{
+        totalUsers: bigint;
+        totalRevenue: number;
+        activeSubscriptions: bigint;
+    }>;
     getAllRevenueEntries(): Promise<Array<RevenueEntry>>;
     getAllSubscriptionPlans(): Promise<Array<SubscriptionPlan>>;
     getAllTwitchAccounts(): Promise<Array<TwitchAccount>>;
+    getAllUsersAdmin(): Promise<Array<UserProfile>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getRevenueEntry(revenueId: bigint): Promise<RevenueEntry | null>;
@@ -125,7 +131,6 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
-    isUserOwner(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     setUserOwnerStatus(user: Principal, isOwnerStatus: boolean): Promise<void>;

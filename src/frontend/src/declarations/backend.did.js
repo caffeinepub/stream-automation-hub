@@ -13,11 +13,6 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const SubscriptionStatus = IDL.Variant({
-  'active' : IDL.Null,
-  'cancelled' : IDL.Null,
-  'inactive' : IDL.Null,
-});
 export const ShoppingItem = IDL.Record({
   'productName' : IDL.Text,
   'currency' : IDL.Text,
@@ -57,7 +52,13 @@ export const TwitchAccount = IDL.Record({
   'owner' : IDL.Principal,
   'accountType' : IDL.Variant({ 'affiliate' : IDL.Null, 'partner' : IDL.Null }),
 });
+export const SubscriptionStatus = IDL.Variant({
+  'active' : IDL.Null,
+  'cancelled' : IDL.Null,
+  'inactive' : IDL.Null,
+});
 export const UserProfile = IDL.Record({
+  'twitchUsername' : IDL.Opt(IDL.Text),
   'subscriptionEndDate' : IDL.Opt(IDL.Nat),
   'name' : IDL.Text,
   'subscriptionTier' : IDL.Opt(SubscriptionTier),
@@ -100,7 +101,6 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addRevenueEntry' : IDL.Func([IDL.Nat, IDL.Float64, IDL.Text], [IDL.Nat], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'checkSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
   'createCheckoutSession' : IDL.Func(
       [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
       [IDL.Text],
@@ -123,6 +123,17 @@ export const idlService = IDL.Service({
       [IDL.Vec(SubscriptionPlan)],
       ['query'],
     ),
+  'getAdminDashboardStats' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'totalUsers' : IDL.Nat,
+          'totalRevenue' : IDL.Float64,
+          'activeSubscriptions' : IDL.Nat,
+        }),
+      ],
+      [],
+    ),
   'getAllRevenueEntries' : IDL.Func([], [IDL.Vec(RevenueEntry)], ['query']),
   'getAllSubscriptionPlans' : IDL.Func(
       [],
@@ -130,6 +141,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getAllTwitchAccounts' : IDL.Func([], [IDL.Vec(TwitchAccount)], ['query']),
+  'getAllUsersAdmin' : IDL.Func([], [IDL.Vec(UserProfile)], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getRevenueEntry' : IDL.Func([IDL.Nat], [IDL.Opt(RevenueEntry)], ['query']),
@@ -147,7 +159,6 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
-  'isUserOwner' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
   'setUserOwnerStatus' : IDL.Func([IDL.Principal, IDL.Bool], [], []),
@@ -181,11 +192,6 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
-  });
-  const SubscriptionStatus = IDL.Variant({
-    'active' : IDL.Null,
-    'cancelled' : IDL.Null,
-    'inactive' : IDL.Null,
   });
   const ShoppingItem = IDL.Record({
     'productName' : IDL.Text,
@@ -229,7 +235,13 @@ export const idlFactory = ({ IDL }) => {
       'partner' : IDL.Null,
     }),
   });
+  const SubscriptionStatus = IDL.Variant({
+    'active' : IDL.Null,
+    'cancelled' : IDL.Null,
+    'inactive' : IDL.Null,
+  });
   const UserProfile = IDL.Record({
+    'twitchUsername' : IDL.Opt(IDL.Text),
     'subscriptionEndDate' : IDL.Opt(IDL.Nat),
     'name' : IDL.Text,
     'subscriptionTier' : IDL.Opt(SubscriptionTier),
@@ -273,7 +285,6 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'checkSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
     'createCheckoutSession' : IDL.Func(
         [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
         [IDL.Text],
@@ -299,6 +310,17 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(SubscriptionPlan)],
         ['query'],
       ),
+    'getAdminDashboardStats' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'totalUsers' : IDL.Nat,
+            'totalRevenue' : IDL.Float64,
+            'activeSubscriptions' : IDL.Nat,
+          }),
+        ],
+        [],
+      ),
     'getAllRevenueEntries' : IDL.Func([], [IDL.Vec(RevenueEntry)], ['query']),
     'getAllSubscriptionPlans' : IDL.Func(
         [],
@@ -306,6 +328,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getAllTwitchAccounts' : IDL.Func([], [IDL.Vec(TwitchAccount)], ['query']),
+    'getAllUsersAdmin' : IDL.Func([], [IDL.Vec(UserProfile)], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getRevenueEntry' : IDL.Func([IDL.Nat], [IDL.Opt(RevenueEntry)], ['query']),
@@ -327,7 +350,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
-    'isUserOwner' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
     'setUserOwnerStatus' : IDL.Func([IDL.Principal, IDL.Bool], [], []),

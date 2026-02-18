@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { UserProfile, TwitchAccount, RevenueEntry, TwitchAccountStatus, Variant_affiliate_partner, SubscriptionTier, SubscriptionStatus, SubscriptionPlan } from '../backend';
-import { toast } from 'sonner';
+import { UserProfile, TwitchAccount, RevenueEntry, SubscriptionPlan, SubscriptionTier, SubscriptionStatus, Variant_affiliate_partner, TwitchAccountStatus } from '../backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -34,67 +33,117 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      toast.success('Profile saved successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to save profile: ${error.message}`);
     },
   });
 }
 
-// Owner Status Check
-export function useIsUserOwner() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isUserOwner'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return actor.isUserOwner();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-// Subscription Management
 export function useCheckSubscriptionStatus() {
+  const { data: userProfile } = useGetCallerUserProfile();
+  return {
+    data: userProfile?.subscriptionStatus || SubscriptionStatus.inactive,
+    isLoading: false,
+  };
+}
+
+export function useGetAllTwitchAccounts() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<SubscriptionStatus>({
-    queryKey: ['subscriptionStatus'],
+  return useQuery<TwitchAccount[]>({
+    queryKey: ['twitchAccounts'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.checkSubscriptionStatus();
+      if (!actor) return [];
+      return actor.getAllTwitchAccounts();
     },
     enabled: !!actor && !isFetching,
   });
 }
 
-export type CheckoutSession = {
-  id: string;
-  url: string;
-};
+export function useGetTwitchAccount(accountId: bigint | null) {
+  const { actor, isFetching } = useActor();
 
-export function useCreateStripeSubscription() {
+  return useQuery<TwitchAccount | null>({
+    queryKey: ['twitchAccount', accountId?.toString()],
+    queryFn: async () => {
+      if (!actor || !accountId) return null;
+      return actor.getTwitchAccount(accountId);
+    },
+    enabled: !!actor && !isFetching && accountId !== null,
+  });
+}
+
+export function useCreateTwitchAccount() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (planId: bigint): Promise<CheckoutSession> => {
+    mutationFn: async ({ username, accountType }: { username: string; accountType: Variant_affiliate_partner }) => {
       if (!actor) throw new Error('Actor not available');
-      const result = await actor.createStripeSubscription(planId);
-      const session = JSON.parse(result) as CheckoutSession;
-      if (!session?.url) {
-        throw new Error('Stripe session missing url');
-      }
-      return session;
+      return actor.createTwitchAccount(username, accountType);
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to create subscription: ${error.message}`);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
     },
   });
 }
 
-// Subscription Plan Management (Owner-only)
+export function useUpgradeTwitchAccount() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ accountId, accountType }: { accountId: bigint; accountType: Variant_affiliate_partner }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.upgradeTwitchAccount(accountId, accountType);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
+    },
+  });
+}
+
+export function useUpdateTwitchAccountStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ accountId, status }: { accountId: bigint; status: TwitchAccountStatus }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateTwitchAccountStatus(accountId, status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
+    },
+  });
+}
+
+export function useGetAllRevenueEntries() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<RevenueEntry[]>({
+    queryKey: ['revenues'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllRevenueEntries();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAddRevenueEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ accountId, amount, description }: { accountId: bigint; amount: number; description: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addRevenueEntry(accountId, amount, description);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['revenues'] });
+    },
+  });
+}
+
 export function useGetAllSubscriptionPlans() {
   const { actor, isFetching } = useActor();
 
@@ -121,34 +170,39 @@ export function useGetActiveSubscriptionPlans() {
   });
 }
 
+export type CheckoutSession = {
+  id: string;
+  url: string;
+};
+
+export function useCreateStripeSubscription() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (planId: bigint): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const result = await actor.createStripeSubscription(planId);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
 export function useCreateSubscriptionPlan() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      name,
-      description,
-      tier,
-      priceInCents,
-      features,
-    }: {
-      name: string;
-      description: string;
-      tier: SubscriptionTier;
-      priceInCents: bigint;
-      features: string[];
-    }) => {
+    mutationFn: async ({ name, description, tier, priceInCents, features }: { name: string; description: string; tier: SubscriptionTier; priceInCents: bigint; features: string[] }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createSubscriptionPlan(name, description, tier, priceInCents, features);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
       queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
-      toast.success('Subscription plan created successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to create plan: ${error.message}`);
     },
   });
 }
@@ -158,31 +212,13 @@ export function useUpdateSubscriptionPlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      planId,
-      name,
-      description,
-      priceInCents,
-      features,
-      isActive,
-    }: {
-      planId: bigint;
-      name: string;
-      description: string;
-      priceInCents: bigint;
-      features: string[];
-      isActive: boolean;
-    }) => {
+    mutationFn: async ({ planId, name, description, priceInCents, features, isActive }: { planId: bigint; name: string; description: string; priceInCents: bigint; features: string[]; isActive: boolean }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateSubscriptionPlan(planId, name, description, priceInCents, features, isActive);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
       queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
-      toast.success('Subscription plan updated successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to update plan: ${error.message}`);
     },
   });
 }
@@ -199,10 +235,6 @@ export function useDeleteSubscriptionPlan() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
       queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
-      toast.success('Subscription plan deleted successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to delete plan: ${error.message}`);
     },
   });
 }
@@ -219,167 +251,6 @@ export function useToggleSubscriptionPlanStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
       queryClient.invalidateQueries({ queryKey: ['activeSubscriptionPlans'] });
-      toast.success('Plan status toggled successfully');
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to toggle plan status: ${error.message}`);
-    },
-  });
-}
-
-// Twitch Account Management
-export function useGetAllTwitchAccounts() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<TwitchAccount[]>({
-    queryKey: ['twitchAccounts'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllTwitchAccounts();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useCreateTwitchAccount() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      username,
-      accountType,
-    }: {
-      username: string;
-      accountType: Variant_affiliate_partner;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createTwitchAccount(username, accountType);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
-      toast.success('Twitch account added successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to add Twitch account: ${error.message}`);
-    },
-  });
-}
-
-export function useGetTwitchAccount(accountId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<TwitchAccount | null>({
-    queryKey: ['twitchAccount', accountId?.toString()],
-    queryFn: async () => {
-      if (!actor || !accountId) return null;
-      return actor.getTwitchAccount(accountId);
-    },
-    enabled: !!actor && !isFetching && accountId !== null,
-  });
-}
-
-export function useUpdateTwitchAccountStatus() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      accountId,
-      status,
-    }: {
-      accountId: bigint;
-      status: TwitchAccountStatus;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateTwitchAccountStatus(accountId, status);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
-      toast.success('Account status updated successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to update account status: ${error.message}`);
-    },
-  });
-}
-
-export function useUpgradeTwitchAccount() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      accountId,
-      accountType,
-    }: {
-      accountId: bigint;
-      accountType: Variant_affiliate_partner;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.upgradeTwitchAccount(accountId, accountType);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['twitchAccounts'] });
-      queryClient.invalidateQueries({ queryKey: ['twitchAccount'] });
-      toast.success('Account upgraded successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to upgrade account: ${error.message}`);
-    },
-  });
-}
-
-// Revenue Management
-export function useGetAllRevenueEntries() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<RevenueEntry[]>({
-    queryKey: ['revenueEntries'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllRevenueEntries();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useAddRevenueEntry() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      accountId,
-      amount,
-      description,
-    }: {
-      accountId: bigint;
-      amount: number;
-      description: string;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.addRevenueEntry(accountId, amount, description);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['revenueEntries'] });
-      toast.success('Revenue entry added successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to add revenue entry: ${error.message}`);
-    },
-  });
-}
-
-export function useGetRevenueEntry(revenueId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<RevenueEntry | null>({
-    queryKey: ['revenueEntry', revenueId?.toString()],
-    queryFn: async () => {
-      if (!actor || !revenueId) return null;
-      return actor.getRevenueEntry(revenueId);
-    },
-    enabled: !!actor && !isFetching && revenueId !== null,
   });
 }

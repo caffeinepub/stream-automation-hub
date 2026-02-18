@@ -1,54 +1,160 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Stripe Connect login for owner with light blue menu styling",
+  "title": "Fix admin access control and owner recognition system - Frontend",
   "requirements": [
     {
-      "id": "REQ-35",
-      "summary": "Add owner-only Stripe Connect login button in header navigation",
+      "id": "REQ-40",
+      "summary": "Move tracking functionality to a separate dedicated page distinct from the admin dashboard",
       "acceptanceCriteria": [
-        "Stripe Connect login button appears in the header navigation",
-        "Button is only visible when the authenticated user is the owner",
-        "Clicking the button initiates Stripe Connect OAuth flow for linking bank account",
-        "Owner can manage subscription payouts through the Stripe dashboard after connecting"
+        "Create a new route for tracking features separate from /admin",
+        "Tracking page displays revenue tracking, finance tracking, and donation management in a unified view",
+        "Admin dashboard no longer includes tracking functionality",
+        "Navigation includes a link to the new tracking page"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Layout.tsx",
-          "operation": "modify",
-          "description": "Add Stripe Connect login button to the header navigation bar. The button should be conditionally rendered based on isOwner status from the user profile. Use the useGetCallerUserProfile hook to check if userProfile?.isOwner is true. Position the button in the header next to existing navigation items. The button should trigger the Stripe Connect OAuth flow when clicked, opening a new window to Stripe's OAuth URL with appropriate parameters for account linking. Include proper styling to match the existing header design and ensure the button is clearly labeled for bank account connection purposes."
+          "path": "frontend/src/pages/TrackingPage.tsx",
+          "operation": "create",
+          "description": "Create a new TrackingPage component that consolidates revenue tracking, finance tracker, and donation manager into a single unified view with tabs or sections. Include the RevenueChart component for revenue tracking, embed FinanceTracker for finance tracking, and embed DonationManager for donation management. Apply SubscriptionGuard to restrict access to subscribed users only (except the owner who bypasses subscription checks)."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Add a new custom hook useInitiateStripeConnect that handles the Stripe Connect OAuth flow initiation. This hook should construct the Stripe Connect OAuth URL with the necessary parameters (client_id from environment variables, redirect_uri pointing back to the app, and scope for account access). The hook should return a function that opens the Stripe OAuth URL in a new window when called. Handle any errors during URL construction and provide appropriate error messages via toast notifications."
+          "description": "Add a new route for '/tracking' that renders TrackingPage. Register this route in the TanStack Router configuration alongside existing routes. Ensure the route is protected with authentication requirements."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Add a navigation link to the new '/tracking' page in the header navigation menu. Position it logically in the navigation structure, potentially between 'Revenue' and 'Admin Dashboard' links. Ensure the link is visible to authenticated users."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Remove any tracking-related functionality from the admin dashboard page. Focus the admin dashboard exclusively on subscription plan management (creating, editing, deleting, toggling subscription plans). Keep the owner-only access restriction intact."
         }
       ]
     },
     {
-      "id": "REQ-36",
-      "summary": "Update menu background color from white to light blue",
+      "id": "REQ-41",
+      "summary": "Replace Stripe secret key configuration with Stripe Connect OAuth flow for owner bank account linking",
       "acceptanceCriteria": [
-        "Header navigation bar background is light blue instead of white",
-        "Color change is consistent across all pages",
-        "Light blue tone complements the existing purple and pink color scheme",
-        "Text and icons remain clearly visible on the light blue background"
+        "Stripe Connect button initiates OAuth flow for account linking",
+        "Owner can connect their Stripe account to their chosen bank accounts",
+        "Subscription payments are routed to the connected Stripe account",
+        "Backend stores Stripe Connect account ID for the owner"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/StripeConnectSetup.tsx",
+          "operation": "create",
+          "description": "Create a StripeConnectSetup component that replaces the manual Stripe secret key input. Display a 'Connect with Stripe' button that initiates the Stripe Connect OAuth flow. Include instructions for the owner to link their Stripe account. Show connection status (connected/not connected) and allow disconnecting if already connected. Restrict access to owner only using isOwner check from the user profile."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Add a new CSS custom property for light blue menu background in the :root section. Define the color using OKLCH format to match the existing color system (e.g., --menu-bg: oklch(0.90 0.05 220)). Ensure the light blue tone is light enough for good contrast with text and complements the existing purple (hsl(262.1 83.3% 57.8%)) and pink color scheme."
+          "description": "Replace the existing Stripe configuration form (if present) with the new StripeConnectSetup component. Remove any UI elements that previously collected the Stripe secret key. Ensure the component is only visible to the owner (CelestiNix)."
         },
         {
           "path": "frontend/src/components/Layout.tsx",
           "operation": "modify",
-          "description": "Update the header navigation bar className to use the new light blue background color. Replace any existing white or transparent background classes with the new menu background color. Ensure text color and icon colors provide sufficient contrast on the light blue background. Test that the updated styling works correctly in both light and dark modes if theme switching is supported."
+          "description": "If the Layout component includes Stripe configuration UI, replace it with a reference to StripeConnectSetup or remove Stripe configuration UI from Layout entirely, ensuring it's only accessible from the admin dashboard."
+        }
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "summary": "Enforce subscription requirement for all users except owner to access advanced features",
+      "acceptanceCriteria": [
+        "SubscriptionGuard blocks non-subscribed users from accessing advanced features",
+        "Owner (CelestiNix) bypasses subscription checks for all features",
+        "Clear subscription required message displayed to non-subscribed users",
+        "Backend validates subscription status before processing requests for protected features"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SubscriptionGuard.tsx",
+          "operation": "modify",
+          "description": "Enhance SubscriptionGuard to check the isOwner field from the user profile. If isOwner is true, bypass all subscription checks and allow access. For non-owner users, enforce subscription validation as before. Ensure the owner (CelestiNix) can access all advanced features (AI assistant, chat room, Discord tools, finance tracker, calculator, donation manager) without requiring an active subscription."
         },
         {
-          "path": "frontend/tailwind.config.js",
+          "path": "frontend/src/pages/AIAssistantPage.tsx",
           "operation": "modify",
-          "description": "Add a new color token to the theme.extend.colors section for the light blue menu background (e.g., 'menu-bg': 'var(--menu-bg)'). This makes the color available as a Tailwind utility class (bg-menu-bg) for use throughout the application."
+          "description": "Verify that SubscriptionGuard is properly applied and that the owner bypass logic works correctly. Ensure the page displays for the owner even without an active subscription."
+        },
+        {
+          "path": "frontend/src/pages/ChatRoomPage.tsx",
+          "operation": "modify",
+          "description": "Verify that SubscriptionGuard is properly applied and that the owner bypass logic works correctly. Ensure the page displays for the owner even without an active subscription."
+        },
+        {
+          "path": "frontend/src/pages/DiscordToolsPage.tsx",
+          "operation": "modify",
+          "description": "Verify that SubscriptionGuard is properly applied and that the owner bypass logic works correctly. Ensure the page displays for the owner even without an active subscription."
+        },
+        {
+          "path": "frontend/src/pages/FinanceTrackerPage.tsx",
+          "operation": "modify",
+          "description": "Verify that SubscriptionGuard is properly applied and that the owner bypass logic works correctly. Ensure the page displays for the owner even without an active subscription."
+        },
+        {
+          "path": "frontend/src/pages/DonationManagerPage.tsx",
+          "operation": "modify",
+          "description": "Verify that SubscriptionGuard is properly applied and that the owner bypass logic works correctly. Ensure the page displays for the owner even without an active subscription."
+        },
+        {
+          "path": "frontend/src/pages/CalculatorPage.tsx",
+          "operation": "modify",
+          "description": "If CalculatorPage should be subscription-protected, apply SubscriptionGuard with owner bypass logic. If the calculator should remain public, no changes needed."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Fix authentication flow to prevent admin login from triggering simultaneous user login",
+      "acceptanceCriteria": [
+        "Admin login flow does not create or trigger a separate user profile creation",
+        "Owner authentication provides admin access without redundant user login",
+        "Single authentication session handles both admin and owner privileges",
+        "No duplicate login prompts or profile setup screens appear for admin"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileSetup.tsx",
+          "operation": "modify",
+          "description": "Modify the profile setup flow to detect if the authenticated user is already recognized as the owner (by checking backend data or principal). If the user is the owner, skip or streamline profile setup to avoid redundant user profile creation. Ensure the owner can proceed directly to the admin dashboard without being prompted for standard user profile fields."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Review the authentication and routing logic to ensure that when the owner logs in, they are not forced through a separate user login flow. If the owner already has admin privileges, route them directly to the appropriate landing page (admin dashboard or main dashboard) without triggering profile setup modals unnecessarily. Ensure the profile setup modal only appears for new non-owner users."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Ensure that the Layout component's authentication handling does not trigger duplicate login prompts or profile creation flows when the owner is authenticated. Verify that the owner's authentication state is handled as a single session that grants both admin and owner privileges without redundant user profile checks."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Fix owner badge display to correctly show the owner indicator for CelestiNix based on isOwner field",
+      "acceptanceCriteria": [
+        "Owner badge appears consistently in ProfileCard component when isOwner is true",
+        "Badge styling is visually distinct and clearly indicates owner status",
+        "Badge displays immediately after profile data loads",
+        "Badge does not appear for non-owner users"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileCard.tsx",
+          "operation": "modify",
+          "description": "Fix the owner badge rendering logic in the ProfileCard component. Ensure the badge is displayed when userProfile.isOwner is true. Verify that the badge styling is visually distinct (e.g., using a crown icon, special color, or 'Owner' label). Ensure the badge appears immediately after the user profile loads and does not flicker or disappear. Test that the badge does not display for non-owner users."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Verify that the useGetCallerUserProfile query correctly fetches and returns the isOwner field from the backend. Ensure the query does not transform or omit this field. Confirm that the query properly handles the UserProfile type including the isOwner boolean field."
         }
       ]
     }
